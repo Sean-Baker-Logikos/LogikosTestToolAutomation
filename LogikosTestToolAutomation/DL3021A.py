@@ -1,6 +1,7 @@
 import pyvisa
 from typing import Optional, Union
 from dataclasses import dataclass
+from test_tool_common import connect_pyvisa_device
 
 """
 Controlling a RIGOL DL3021A DC Electronic Load
@@ -22,32 +23,22 @@ class DL3021A:
     RIGOL DL3021A DC Electronic Load
     """
 
-    def __init__(self, RID):
+    def __init__(self, RID : Optional[str] = None):
         """
-        Initialize instance
+        Initialize DL3021A instance
 
-        RID (Resource ID) as defined by pyVISA. E.g.:
+        RID : pyVISA resource identifier. If not specified, the first UDP3305S found will be connected.
 
-            TCPIP::192.168.0.66::INSTR
-            TCPIP::PowerSupply::INSTR
-            GPIB1::10
-            USB::0x1234::125::A22-5::INSTR
-
-            See pyVISA documentation for details.
-            https://pyvisa.readthedocs.io/en/latest/introduction/communication.html
+        See pyVISA documentation for details.
+        https://pyvisa.readthedocs.io/en/latest/introduction/communication.html
         """
+        self.models = ("DL3021A")
+
         rm = pyvisa.ResourceManager()
-        self.connection = rm.open_resource(RID)
-        self.connection.read_termination = "\n"
-        self.connection.write_termination = "\n"
-        self.idn = dict()
-        (self.idn['manufacturer'],
-         self.idn['model'],
-         self.idn['SN'],
-         self.idn['firmware']) = self.connection.query("*IDN?").split(",")
+        (self.connection, self.idn) = connect_pyvisa_device(rm, RID, self.vid, self.pid, self.models)
 
-        if self.idn["model"] not in ("DL3021A"):
-            raise RuntimeError(f"Instrument ID '{self.idn['model']}' not supported." )
+        if not self.connection:
+            raise RuntimeError(f"Instrument {self.models} not found." )
 
     def __del__(self):
         self.connection.close()

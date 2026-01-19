@@ -1,4 +1,6 @@
 import pyvisa
+from typing import Optional
+from test_tool_common import connect_pyvisa_device
 
 """
 Controlling a UNI-T UDP3305S power supply
@@ -8,39 +10,29 @@ class UDP3305S:
     """Uni-T UDP3305S Lab power supply
 
     Features 5 channels:
-        ch1     channel1
-        ch2     channel2
-        ch3     channel3
-        chSER   virtual channel vor serial mode
-        chPAR   virtual channel for parallel mode
+        ch1     channel1 (max 33V 5.2A)
+        ch2     channel2 (max 33V 5.2A)
+        ch3     channel3 (max 6.2V 3.2A)
+        chSER   virtual channel vor serial mode (max 66V 5.2A)
+        chPAR   virtual channel for parallel mode (max 33V 10.4A)
 """
 
-    def __init__(self, RID):
+    def __init__(self, RID : Optional[str] = None):
         """
-        Initialize PSU instance
+        Initialize UDP3305S instance
 
-        RID (Resource ID) as defined by pyVISA. E.g.:
+        RID : pyVISA resource identifier. If not specified, the first UDP3305S found will be connected.
 
-            TCPIP::192.168.0.66::INSTR
-            TCPIP::PowerSupply::INSTR
-            GPIB1::10
-            USB::0x1234::125::A22-5::INSTR
-
-            See pyVISA documentation for details.
-            https://pyvisa.readthedocs.io/en/latest/introduction/communication.html
+        See pyVISA documentation for details.
+        https://pyvisa.readthedocs.io/en/latest/introduction/communication.html
         """
+        self.models = ("DL3021A")
+
         rm = pyvisa.ResourceManager()
-        self.connection = rm.open_resource(RID)
-        self.connection.read_termination = "\n"
-        self.connection.write_termination = "\n"
-        self.idn = dict()
-        (self.idn['manufacturer'],
-         self.idn['model'],
-         self.idn['SN'],
-         self.idn['firmware']) = self.connection.query("*IDN?").split(",")
+        (self.connection, self.idn) = connect_pyvisa_device(rm, RID, self.vid, self.pid, self.models)
 
-        if self.idn["model"] not in ("UDP3305S", "UDP3305S-E"):
-            raise RuntimeError(f"Instrument ID '{self.idn['model']}' not supported." )
+        if not self.connection:
+            raise RuntimeError(f"Instrument {self.models} not found." )
 
         self.ch1 = UDP3305S_channel("CH1", self.connection, V_max=33, A_max=5.2)
         self.ch2 = UDP3305S_channel("CH2", self.connection, V_max=33, A_max=5.2)
@@ -49,7 +41,8 @@ class UDP3305S:
         self.chPAR = UDP3305S_channel("PAR", self.connection, V_max=33, A_max=10.4)
 
     def __del__(self):
-        self.connection.close()
+        if self.connection:
+            self.connection.close()
 
     def __str__(self):
         return f"{self.idn['model']} 3-channel lab power supply\nSN:{self.idn['SN']}\nFirmware: {self.idn['firmware']}"

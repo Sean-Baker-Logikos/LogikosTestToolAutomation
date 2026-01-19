@@ -2,6 +2,7 @@ import pyvisa
 from typing import Optional, Union
 from dataclasses import dataclass
 from enum import Enum, Flag
+from test_tool_common import connect_pyvisa_device
 
 """
 Controlling a SIGLENT SDS 1104X-E Digitial Storage Oscilloscope
@@ -56,32 +57,22 @@ class SDS1104X:
         V = 0
         A = 1
 
-    def __init__(self, RID):
+    def __init__(self, RID : Optional[str] = None):
         """
-        Initialize instance
+        Initialize SDS1104X instance
 
-        RID (Resource ID) as defined by pyVISA. E.g.:
+        RID : pyVISA resource identifier. If not specified, the first UDP3305S found will be connected.
 
-            TCPIP::192.168.0.66::INSTR
-            TCPIP::PowerSupply::INSTR
-            GPIB1::10
-            USB::0x1234::125::A22-5::INSTR
-
-            See pyVISA documentation for details.
-            https://pyvisa.readthedocs.io/en/latest/introduction/communication.html
+        See pyVISA documentation for details.
+        https://pyvisa.readthedocs.io/en/latest/introduction/communication.html
         """
+        self.models = ("SDS1104X-E")
+
         rm = pyvisa.ResourceManager()
-        self.connection = rm.open_resource(RID)
-        self.connection.read_termination = "\n"
-        self.connection.write_termination = "\n"
-        self.idn = dict()
-        (self.idn['manufacturer'],
-         self.idn['model'],
-         self.idn['SN'],
-         self.idn['firmware']) = self.connection.query("*IDN?").split(",")
+        (self.connection, self.idn) = connect_pyvisa_device(rm, RID, self.vid, self.pid, self.models)
 
-        if self.idn['model'] not in ('SDS1104X-E'):
-            raise RuntimeError(f"Instrument ID '{self.idn['model']}' not supported." )
+        if not self.connection:
+            raise RuntimeError(f"Instrument {self.models} not found." )
 
         self.ch1 = SDS1104X_channel('C1', self.connection)
         self.ch2 = SDS1104X_channel('C2', self.connection)
