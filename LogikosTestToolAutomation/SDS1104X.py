@@ -12,9 +12,6 @@ Note: Many functions are not implemented!
 See: https://pyvisa.readthedocs.io/en/latest/introduction/communication.html
      https://siglentna.com/wp-content/uploads/dlm_uploads/2025/11/SDS1000-SeriesSDS2000XSDS2000X-E_ProgrammingGuide_EN02E.pdf
 
-from SDS1104X import SDS1104X
-dev = SDS1104X('USB0::0xF4EC::0xEE38::SDSMMFCC5R2853::INSTR')
-
 """
 
 class SDS1104X:
@@ -42,6 +39,7 @@ class SDS1104X:
         """
         TRIGGER_READY           = 8192
         SIGNAL_ACQUIRED         = 1
+        NONE                    = 0
 
     class TriggerMode(Enum):
         AUTO = 0
@@ -69,7 +67,7 @@ class SDS1104X:
         self.models = ("SDS1104X-E")
 
         rm = pyvisa.ResourceManager()
-        (self.connection, self.idn) = connect_pyvisa_device(rm, RID, self.vid, self.pid, self.models)
+        (self.connection, self.idn) = connect_pyvisa_device(rm, RID, self.models)
 
         if not self.connection:
             raise RuntimeError(f"Instrument {self.models} not found." )
@@ -83,7 +81,8 @@ class SDS1104X:
         # pyvisa.errors.VisaIOError
 
     def __del__(self):
-        self.connection.close()
+        if self.connection:
+            self.connection.close()
 
     def __str__(self):
         return f"{self.idn['model']} Digital Storage Oscilloscope\nSN:{self.idn['SN']}\nFirmware: {self.idn['firmware']}"
@@ -91,7 +90,7 @@ class SDS1104X:
     # STATUS COMMANDS
 
     def get_status(self) -> Status:
-        return self.connection.query("INR?")
+        return SDS1104X.Status(int(self.connection.query("INR?")))
 
     # COMMON COMMANDS
 
@@ -295,7 +294,7 @@ class SDS1104X:
         with open(filename, "wb") as bmpfile:
             self.connection.write('SCDP')
             bmp_data = self.connection.read_raw()
-            binfile.write(bmp_data)
+            bmpfile.write(bmp_data)
 
     # SYSTEM COMMANDS
 

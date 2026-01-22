@@ -12,10 +12,6 @@ See: https://pyvisa.readthedocs.io/en/latest/introduction/communication.html
 
      https://www.rigolna.com/products/dc-power-loads/dl3000/
      DL3000 Programming Manual
-
-from DL3021A import DL3021A
-dev = DL3021A('USB0::0x1AB1::0x0E11::DL3B262000180::INSTR')
-print(dev.get_state())
 """
 
 class DL3021A:
@@ -35,13 +31,14 @@ class DL3021A:
         self.models = ("DL3021A")
 
         rm = pyvisa.ResourceManager()
-        (self.connection, self.idn) = connect_pyvisa_device(rm, RID, self.vid, self.pid, self.models)
+        (self.connection, self.idn) = connect_pyvisa_device(rm, RID, self.models)
 
         if not self.connection:
             raise RuntimeError(f"Instrument {self.models} not found." )
 
     def __del__(self):
-        self.connection.close()
+        if self.connection:
+            self.connection.close()
 
     def __str__(self):
         return f"{self.idn['model']} DC Electronic Load\nSN:{self.idn['SN']}\nFirmware: {self.idn['firmware']}"
@@ -170,12 +167,12 @@ class DL3021A:
         i_limit : float = 0
 
     def setup_const_current(self,
-                 current: Optional[Union[float, str]] = None,
-                 range: Optional[Union[float, str]] = None,
-                 slew: Optional[Union[float, str]] = None,
-                 von: Optional[Union[float, str]] = None,
-                 v_limit: Optional[Union[float, str]] = None,
-                 c_limit: Optional[Union[float, str]] = None):
+            current: Optional[Union[float, str]] = None,
+            range: Optional[Union[float, str]] = None,
+            slew: Optional[Union[float, str]] = None,
+            von: Optional[Union[float, str]] = None,
+            v_limit: Optional[Union[float, str]] = None,
+            c_limit: Optional[Union[float, str]] = None):
         """
         Sets the load's regulated current, current range, slew, starting voltage, voltage limit,
         and current limit in CC mode.
@@ -224,10 +221,10 @@ class DL3021A:
         i_limit : float = 0
 
     def setup_const_voltage(self,
-                 voltage: Optional[Union[float, str]] = None,
-                 range: Optional[Union[float, str]] = None,
-                 v_limit: Optional[Union[float, str]] = None,
-                 c_limit: Optional[Union[float, str]] = None):
+            voltage: Optional[Union[float, str]] = None,
+            range: Optional[Union[float, str]] = None,
+            v_limit: Optional[Union[float, str]] = None,
+            c_limit: Optional[Union[float, str]] = None):
         """
         Sets the load voltage, voltage range, voltage limit, and current limit set in CV mode.
         Only parameters specified will be set.
@@ -266,10 +263,10 @@ class DL3021A:
         i_limit : float = 0
 
     def setup_const_resistance(self,
-                 resistance: Optional[Union[float, str]] = None,
-                 range: Optional[Union[float, str]] = None,
-                 v_limit: Optional[Union[float, str]] = None,
-                 c_limit: Optional[Union[float, str]] = None):
+            resistance: Optional[Union[float, str]] = None,
+            range: Optional[Union[float, str]] = None,
+            v_limit: Optional[Union[float, str]] = None,
+            c_limit: Optional[Union[float, str]] = None):
         """
         Sets the load resistance, resistance range, voltage limit, and current limit in CR mode.
         Only parameters specified will be set.
@@ -307,9 +304,9 @@ class DL3021A:
         i_limit : float = 0
 
     def setup_const_power(self,
-                 power: Optional[Union[float, str]] = None,
-                 v_limit: Optional[Union[float, str]] = None,
-                 c_limit: Optional[Union[float, str]] = None):
+            power: Optional[Union[float, str]] = None,
+            v_limit: Optional[Union[float, str]] = None,
+            c_limit: Optional[Union[float, str]] = None):
         """
         Sets the load power, voltage limit, and current limit in CP mode.
         Only parameters specified will be set.

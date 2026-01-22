@@ -11,6 +11,8 @@ Logikos Test Tool Automation Helper Scripts
 
 	scope = SDS1104X()
 
+	# Load oscilloscope settings
+
 	scope.load_state_file("test5_osc_setup.xml")
 
 	s = scope.get_status()
@@ -19,6 +21,8 @@ Logikos Test Tool Automation Helper Scripts
 		time.sleep(1)
 		s = scope.get_status()
 		print(s)
+
+	# Arm trigger for a single capture
 
 	print("set_trigger_mode SINGLE")
 	scope.set_trigger_mode(SDS1104X.TriggerMode.SINGLE)
@@ -29,6 +33,8 @@ Logikos Test Tool Automation Helper Scripts
 		time.sleep(1)
 		s = scope.get_status()
 		print(s)
+
+	# Save screenshot
 
 	scope.capture_screen("test5_screenshot.bmp")
 

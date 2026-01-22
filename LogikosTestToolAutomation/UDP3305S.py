@@ -26,10 +26,10 @@ class UDP3305S:
         See pyVISA documentation for details.
         https://pyvisa.readthedocs.io/en/latest/introduction/communication.html
         """
-        self.models = ("DL3021A")
+        self.models = ("UDP3305S", "UDP3305S-E")
 
         rm = pyvisa.ResourceManager()
-        (self.connection, self.idn) = connect_pyvisa_device(rm, RID, self.vid, self.pid, self.models)
+        (self.connection, self.idn) = connect_pyvisa_device(rm, RID, self.models)
 
         if not self.connection:
             raise RuntimeError(f"Instrument {self.models} not found." )
