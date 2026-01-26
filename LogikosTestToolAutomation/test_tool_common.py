@@ -5,6 +5,9 @@ def connect_pyvisa_device(rm,   # pyvisa.ResourceManager()
                           RID : str = "",
                           models : List[str] = []):
     """
+    Connect to a pyVisa device.
+    See: https://pyvisa.readthedocs.io/en/latest/introduction/communication.html
+
     If RID is specified, connect to the specified device and verifiy that the model matches a string from the list.
     If RID is not specified, each device will be queried and the first one with a matching model will be retureed.
     """

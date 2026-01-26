@@ -6,8 +6,8 @@ Logikos Test Tool Automation Helper Scripts
 
 # Example - SDS1104X
 
-	from SDS1104X import SDS1104X
-	import time
+    from LogikosTestToolAutomation.SDS1104X import SDS1104X
+    import time
 
 	scope = SDS1104X()
 
@@ -24,7 +24,6 @@ Logikos Test Tool Automation Helper Scripts
 
 	# Arm trigger for a single capture
 
-	print("set_trigger_mode SINGLE")
 	scope.set_trigger_mode(SDS1104X.TriggerMode.SINGLE)
 
 	s = scope.get_status()

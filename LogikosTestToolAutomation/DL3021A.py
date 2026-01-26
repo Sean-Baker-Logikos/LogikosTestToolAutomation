@@ -1,17 +1,14 @@
 import pyvisa
+from LogikosTestToolAutomation import test_tool_common
 from typing import Optional, Union
 from dataclasses import dataclass
-from test_tool_common import connect_pyvisa_device
 
 """
 Controlling a RIGOL DL3021A DC Electronic Load
 
-Note: Many functions are not implemented!
-
-See: https://pyvisa.readthedocs.io/en/latest/introduction/communication.html
-
-     https://www.rigolna.com/products/dc-power-loads/dl3000/
-     DL3000 Programming Manual
+Note: Many functions are not implemented! See:
+      https://www.rigolna.com/products/dc-power-loads/dl3000/
+      DL3000 Programming Manual
 """
 
 class DL3021A:
@@ -31,7 +28,7 @@ class DL3021A:
         self.models = ("DL3021A")
 
         rm = pyvisa.ResourceManager()
-        (self.connection, self.idn) = connect_pyvisa_device(rm, RID, self.models)
+        (self.connection, self.idn) = test_tool_common.connect_pyvisa_device(rm, RID, self.models)
 
         if not self.connection:
             raise RuntimeError(f"Instrument {self.models} not found." )

@@ -1,6 +1,6 @@
 import pyvisa
+from LogikosTestToolAutomation import test_tool_common
 from typing import Optional
-from test_tool_common import connect_pyvisa_device
 
 """
 Controlling a UNI-T UDP3305S power supply
@@ -15,7 +15,7 @@ class UDP3305S:
         ch3     channel3 (max 6.2V 3.2A)
         chSER   virtual channel vor serial mode (max 66V 5.2A)
         chPAR   virtual channel for parallel mode (max 33V 10.4A)
-"""
+    """
 
     def __init__(self, RID : Optional[str] = None):
         """
@@ -29,7 +29,7 @@ class UDP3305S:
         self.models = ("UDP3305S", "UDP3305S-E")
 
         rm = pyvisa.ResourceManager()
-        (self.connection, self.idn) = connect_pyvisa_device(rm, RID, self.models)
+        (self.connection, self.idn) = test_tool_common.connect_pyvisa_device(rm, RID, self.models)
 
         if not self.connection:
             raise RuntimeError(f"Instrument {self.models} not found." )

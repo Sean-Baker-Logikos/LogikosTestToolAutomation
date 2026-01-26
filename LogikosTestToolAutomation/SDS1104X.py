@@ -1,17 +1,14 @@
 import pyvisa
+from LogikosTestToolAutomation import test_tool_common
 from typing import Optional, Union
 from dataclasses import dataclass
 from enum import Enum, Flag
-from test_tool_common import connect_pyvisa_device
 
 """
 Controlling a SIGLENT SDS 1104X-E Digitial Storage Oscilloscope
 
-Note: Many functions are not implemented!
-
-See: https://pyvisa.readthedocs.io/en/latest/introduction/communication.html
-     https://siglentna.com/wp-content/uploads/dlm_uploads/2025/11/SDS1000-SeriesSDS2000XSDS2000X-E_ProgrammingGuide_EN02E.pdf
-
+Note: Many functions are not implemented! See:
+      https://siglentna.com/wp-content/uploads/dlm_uploads/2025/11/SDS1000-SeriesSDS2000XSDS2000X-E_ProgrammingGuide_EN02E.pdf
 """
 
 class SDS1104X:
@@ -67,7 +64,7 @@ class SDS1104X:
         self.models = ("SDS1104X-E")
 
         rm = pyvisa.ResourceManager()
-        (self.connection, self.idn) = connect_pyvisa_device(rm, RID, self.models)
+        (self.connection, self.idn) = test_tool_common.connect_pyvisa_device(rm, RID, self.models)
 
         if not self.connection:
             raise RuntimeError(f"Instrument {self.models} not found." )
@@ -111,26 +108,6 @@ class SDS1104X:
 
     # SAVE COMMANDS
     # RECALL COMMANDS
-
-    def save_state_internal(self, location):
-        """
-        Stores the complete front-panel setup of the instrument to internal memory.
-        location: 1-20
-        """
-        if location >= 1 and location <= 20:
-            self.connection.write(f'*SAV {location}')
-        else:
-            raise ValueError('Save location must be between 1 and 20')
-
-    def load_state_internal(self, location):
-        """
-        Recalls the complete front-panel setup of the instrument from internal memory.
-        location: 1-20
-        """
-        if location >= 1 and location <= 20:
-            self.connection.write(f'*RCL {location}')
-        else:
-            raise ValueError('Recall location must be between 1 and 20')
 
     def write_state_file(self, filename):
         """
