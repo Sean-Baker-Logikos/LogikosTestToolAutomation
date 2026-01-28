@@ -16,7 +16,7 @@ class DL3021A:
     RIGOL DL3021A DC Electronic Load
     """
 
-    def __init__(self, RID : Optional[str] = None):
+    def __init__(self, RID : str = ""):
         """
         Initialize DL3021A instance
 
@@ -25,7 +25,7 @@ class DL3021A:
         See pyVISA documentation for details.
         https://pyvisa.readthedocs.io/en/latest/introduction/communication.html
         """
-        self.models = ("DL3021A")
+        self.models = ["DL3021A"]
 
         rm = pyvisa.ResourceManager()
         (self.connection, self.idn) = test_tool_common.connect_pyvisa_device(rm, RID, self.models)
@@ -44,6 +44,9 @@ class DL3021A:
         """
         Configures the instrument to wait for all pending operations to complete before executing any additional commands.
         """
+        if not self.connection:
+            raise RuntimeError(f"Instrument not connected.")
+
         self.connection.write("*WAI")
 
     # :STATUS:QUESTIONABLE:CONDITION?
@@ -201,12 +204,12 @@ class DL3021A:
         Queries the load's regulated current, current range, slew, starting voltage, voltage limit,
         and current limit set in CC mode.
         """
-        current = self.connection.query(":SOURCE:CURRENT:LEVEL?")
-        range = self.connection.query(":SOURCE:CURRENT:RANGE?")
-        slew = self.connection.query(":SOURCE:CURRENT:SLEW?")
-        von = self.connection.query(":SOURCE:CURRENT:VON?")
-        v_limit = self.connection.query(":SOURCE:CURRENT:VLIMT?")
-        i_limit = self.connection.query(":SOURCE:CURRENT:ILIMT?")
+        current = float(self.connection.query(":SOURCE:CURRENT:LEVEL?"))
+        range = float(self.connection.query(":SOURCE:CURRENT:RANGE?"))
+        slew = float(self.connection.query(":SOURCE:CURRENT:SLEW?"))
+        von = float(self.connection.query(":SOURCE:CURRENT:VON?"))
+        v_limit = float(self.connection.query(":SOURCE:CURRENT:VLIMT?"))
+        i_limit = float(self.connection.query(":SOURCE:CURRENT:ILIMT?"))
 
         return DL3021A.const_current_values(current, range, slew, von, v_limit, i_limit)
 
@@ -245,10 +248,10 @@ class DL3021A:
         """
         Queries the load voltage, voltage range, voltage limit, and current limit set in CV mode.
         """
-        voltage = self.connection.query(":SOURCE:VOLTAGE:LEVEL?")
-        range = self.connection.query(":SOURCE:VOLTAGE:RANGE?")
-        v_limit = self.connection.query(":SOURCE:VOLTAGE:VLIMT?")
-        i_limit = self.connection.query(":SOURCE:VOLTAGE:ILIMT?")
+        voltage = float(self.connection.query(":SOURCE:VOLTAGE:LEVEL?"))
+        range = float(self.connection.query(":SOURCE:VOLTAGE:RANGE?"))
+        v_limit = float(self.connection.query(":SOURCE:VOLTAGE:VLIMT?"))
+        i_limit = float(self.connection.query(":SOURCE:VOLTAGE:ILIMT?"))
 
         return DL3021A.const_voltage_values(voltage, range, v_limit, i_limit)
 
@@ -287,10 +290,10 @@ class DL3021A:
         """
         Queries the load resistance, resistance range, voltage limit, and current limit in CR mode.
         """
-        current = self.connection.query(":SOURCE:RESISTANCE:LEVEL?")
-        range = self.connection.query(":SOURCE:RESISTANCE:RANGE?")
-        v_limit = self.connection.query(":SOURCE:RESISTANCE:VLIMT?")
-        i_limit = self.connection.query(":SOURCE:RESISTANCE:ILIMT?")
+        resistance = float(self.connection.query(":SOURCE:RESISTANCE:LEVEL?"))
+        range = float(self.connection.query(":SOURCE:RESISTANCE:RANGE?"))
+        v_limit = float(self.connection.query(":SOURCE:RESISTANCE:VLIMT?"))
+        i_limit = float(self.connection.query(":SOURCE:RESISTANCE:ILIMT?"))
 
         return DL3021A.const_resistance_values(resistance, range, v_limit, i_limit)
 
@@ -324,11 +327,11 @@ class DL3021A:
         """
         Queries the load power, voltage limit, and current limit in CP mode.
         """
-        power = self.connection.query(":SOURCE:POWER:LEVEL?")
-        v_limit = self.connection.query(":SOURCE:POWER:VLIMT?")
-        i_limit = self.connection.query(":SOURCE:POWER:ILIMT?")
+        power = float(self.connection.query(":SOURCE:POWER:LEVEL?"))
+        v_limit = float(self.connection.query(":SOURCE:POWER:VLIMT?"))
+        i_limit = float(self.connection.query(":SOURCE:POWER:ILIMT?"))
 
-        return DL3021A.const_power_values(power, range, v_limit, i_limit)
+        return DL3021A.const_power_values(power, v_limit, i_limit)
 
 
 

@@ -52,7 +52,7 @@ class SDS1104X:
         V = 0
         A = 1
 
-    def __init__(self, RID : Optional[str] = None):
+    def __init__(self, RID : str = ""):
         """
         Initialize SDS1104X instance
 
@@ -61,7 +61,7 @@ class SDS1104X:
         See pyVISA documentation for details.
         https://pyvisa.readthedocs.io/en/latest/introduction/communication.html
         """
-        self.models = ("SDS1104X-E")
+        self.models = ["SDS1104X-E"]
 
         rm = pyvisa.ResourceManager()
         (self.connection, self.idn) = test_tool_common.connect_pyvisa_device(rm, RID, self.models)
@@ -135,7 +135,7 @@ class SDS1104X:
         with open(filename, "r") as datafile:
             state_data = datafile.read()
             command = "PNSU " + state_data
-            self.connection.write_raw(command)
+            self.connection.write_raw(command.encode('utf-8'))
 
     # TIMEBASE COMMANDS
 
@@ -205,7 +205,7 @@ class SDS1104X:
 
         level : new trigger level as a string with units (V/mV) or a float in volts.
         """
-        if isinstance(delay, str):
+        if isinstance(level, str):
             self.connection.write(f'TRLV {level}')
         else:
             self.connection.write(f'TRLV {level}V')
@@ -260,7 +260,7 @@ class SDS1104X:
         """
         Displays or hides the menu.
         """
-        self.connection.write(f'MENU {"ON" if invert else "OFF"}')
+        self.connection.write(f'MENU {"ON" if visible else "OFF"}')
 
     # PRINT COMMANDS
 
@@ -279,7 +279,7 @@ class SDS1104X:
         """
         The BUZZER command enables or disables the buzzer.
         """
-        self.connection.write(f'BUZZ {"ON" if invert else "OFF"}')
+        self.connection.write(f'BUZZ {"ON" if buzz else "OFF"}')
 
 
 class SDS1104X_channel:
@@ -350,8 +350,8 @@ class SDS1104X_channel:
 
         skew : new skew value in nanoseconds
         """
-        if nanoseconds >= -100 and nanoseconds <= 100:
-            self.connection.write(f'{self.name}:SKEW {nanoseconds}ns')
+        if skew >= -100 and skew <= 100:
+            self.connection.write(f'{self.name}:SKEW {skew}ns')
         else:
             raise ValueError('Skew nanoseconds must be between -100 and 100')
 

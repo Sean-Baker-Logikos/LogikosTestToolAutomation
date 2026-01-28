@@ -1,9 +1,9 @@
 import pyvisa
-from typing import List, Optional
+from typing import List
 
-def connect_pyvisa_device(rm,   # pyvisa.ResourceManager()
+def connect_pyvisa_device(rm : pyvisa.ResourceManager,
                           RID : str = "",
-                          models : List[str] = []):
+                          models : List[str] = []) -> tuple[pyvisa.resources.MessageBasedResource, dict]:
     """
     Connect to a pyVisa device.
     See: https://pyvisa.readthedocs.io/en/latest/introduction/communication.html
@@ -17,8 +17,8 @@ def connect_pyvisa_device(rm,   # pyvisa.ResourceManager()
     if RID:
         try:
             connection = rm.open_resource(RID, read_termination='\n', write_termination='\n')
-            if connection:
-                (idn['manufacturer'], idn['model'], idn['SN'], idn['firmware']) = connection.query("*IDN?").split(",")
+            if connection and issubclass(type(connection), pyvisa.resources.MessageBasedResource):
+                (idn['manufacturer'], idn['model'], idn['SN'], idn['firmware']) = connection.query("*IDN?").split(",") # type: ignore
                 if idn["model"] not in models:
                     connection.close()
                     connection = None
@@ -31,8 +31,8 @@ def connect_pyvisa_device(rm,   # pyvisa.ResourceManager()
         for r in all_resources:
             try:
                 connection = rm.open_resource(r, read_termination='\n', write_termination='\n')
-                if connection:
-                    (idn['manufacturer'], idn['model'], idn['SN'], idn['firmware']) = connection.query("*IDN?").split(",")
+                if connection and issubclass(type(connection), pyvisa.resources.MessageBasedResource):
+                    (idn['manufacturer'], idn['model'], idn['SN'], idn['firmware']) = connection.query("*IDN?").split(",") # type: ignore
                     if not idn['model'] or idn['model'] not in models:
                         connection.close()
                         connection = None
@@ -41,4 +41,4 @@ def connect_pyvisa_device(rm,   # pyvisa.ResourceManager()
             except pyvisa.errors.VisaIOError:
                 connection = None
 
-    return (connection, idn)
+    return (connection, idn) # type: ignore

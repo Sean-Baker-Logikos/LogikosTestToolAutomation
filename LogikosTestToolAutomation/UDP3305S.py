@@ -17,7 +17,7 @@ class UDP3305S:
         chPAR   virtual channel for parallel mode (max 33V 10.4A)
     """
 
-    def __init__(self, RID : Optional[str] = None):
+    def __init__(self, RID : str = ""):
         """
         Initialize UDP3305S instance
 
@@ -26,7 +26,7 @@ class UDP3305S:
         See pyVISA documentation for details.
         https://pyvisa.readthedocs.io/en/latest/introduction/communication.html
         """
-        self.models = ("UDP3305S", "UDP3305S-E")
+        self.models = ["UDP3305S", "UDP3305S-E"]
 
         rm = pyvisa.ResourceManager()
         (self.connection, self.idn) = test_tool_common.connect_pyvisa_device(rm, RID, self.models)
@@ -77,37 +77,39 @@ class UDP3305S:
 
 
 class UDP3305S_channel:
-    """PSU channel
-    Implementaton of all channel features.
     """
-
+    Class representing a single channel of the UDP3305S power supply
+    """
     def __init__(self, name, connection, V_max, A_max):
-        """Initialize channel object
+        """
+        Initialize channel object
             name        name of the channel
             connection  connection object to read/write from/to
             V_max       max voltage supported
             A_max       max current supported
         """
-
         self.connection = connection
         self.name = name
         self.V_max = V_max
         self.A_max = A_max
 
-    def set_voltage(self, value):
-        "set output voltage [V]"
-
+    def set_voltage(self, value : float):
+        """
+        set output voltage [V]
+        """
         if 0 < value < self.V_max:
             self.connection.write(f"APPLY {self.name},{value}V")
         else:
             raise ValueError(f"Voltage must be in [0, {self.V_max}V")
 
     def get_voltage(self):
-        "get output voltage [V]"
+        """
+        get output voltage [V]
+        """
 
         return float(self.connection.query(f"APPLY? {self.name},VOLT").split(",")[1])
 
-    def set_current(self, value):
+    def set_current(self, value : float):
         "set current limit [A]"
 
         if 0 < value < self.A_max:
@@ -122,7 +124,7 @@ class UDP3305S_channel:
             float(self.connection.query(f"APPLY? {self.name},CURRENT").split(",")[1])
         )
 
-    def set_OVP(self, value, state=1):
+    def set_OVP(self, value : float, state : bool = True):
         "set over voltage protection (OVP) value [V]"
 
         if 0 < value < self.V_max:
@@ -130,10 +132,7 @@ class UDP3305S_channel:
         else:
             raise ValueError(f"OVP Voltage must be in [0, {self.V_max}V")
 
-        if state.upper() in ("ON", "OFF", 1, 0):
-            self.connection.write(f"OUTPUT:OVP:STATE {self.name},{state}")
-        else:
-            raise ValueError(f"'{state}' is not a valid OVP state.")
+        self.connection.write(f"OUTPUT:OVP:STATE {self.name},{'ON' if state else 'OFF'}")
 
     def get_OVP(self):
         "return over voltage protection (OVP) value [V]"
@@ -142,7 +141,7 @@ class UDP3305S_channel:
         state = self.connection.query(f"OUTPUT:OVP:STATE? {self.name}")
         return (value, state)
 
-    def set_OCP(self, value, state=1):
+    def set_OCP(self, value : float, state : bool = True):
         "set over current protection (OCP) value [A]"
 
         if 0 < value < self.A_max:
@@ -150,10 +149,7 @@ class UDP3305S_channel:
         else:
             raise ValueError(f"OCP current must be in [0, {self.A_max}A")
 
-        if state.upper() in ("ON", "OFF", 1, 0):
-            self.connection.write(f"OUTPUT:OCP:STATE {self.name},{state}")
-        else:
-            raise ValueError(f"'{state}' is not a valid OCP state.")
+        self.connection.write(f"OUTPUT:OCP:STATE {self.name},{'ON' if state else 'OFF'}")
 
     def get_OCP(self):
         "return over current protection (OCP) value [A]"
