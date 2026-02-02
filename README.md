@@ -26,6 +26,8 @@ Logikos Test Tool Automation Helper Scripts
 
 	scope.set_trigger_mode(SDS1104X.TriggerMode.SINGLE)
 
+	# Wait for trigger
+
 	s = scope.get_status()
 	print(s)
 	while not s & SDS1104X.Status.SIGNAL_ACQUIRED:

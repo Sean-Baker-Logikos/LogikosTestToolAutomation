@@ -109,9 +109,10 @@ class SDS1104X:
     # SAVE COMMANDS
     # RECALL COMMANDS
 
-    def write_state_file(self, filename):
+    def write_state_file(self, filename : str):
         """
         Saves the current oscilloscope state into a local XML file.
+        filename : path to XML state file
         """
         self.connection.chunk_size = 200000
         self.connection.timeout = 30000
@@ -125,9 +126,10 @@ class SDS1104X:
                     break
                 datafile.write(state_data)
 
-    def load_state_file(self, filename):
+    def load_state_file(self, filename : str):
         """
         Loads the oscilloscope state from a local XML file.
+        filename : path to XML state file
         """
         self.connection.chunk_size = 200000
         self.connection.timeout = 30000
@@ -139,14 +141,13 @@ class SDS1104X:
 
     # TIMEBASE COMMANDS
 
-    def set_time_div(self, timediv):
+    def set_time_div(self, timediv : Union[str, float]):
         """
         The TIME_DIV command sets the horizontal scale per division for the main window.
         Valid timediv values are: 1NS, 2NS, 5NS, 10NS, 20NS, 50NS, 100NS, 200NS, 500NS,
                                   1US, 2US, 5US, 10US, 20US, 50US, 100US, 200US, 500US,
                                   1MS, 2MS, 5MS, 10MS, 20MS, 50MS, 100MS, 200MS, 500MS,
                                   1S, 2S, 5S, 10S, 20S, 50S, 100S
-
         timediv : new time division as a string with units (S/mS/uS/nS) or a float in seconds, and will be rounded to the next highest valid value.
         """
         if isinstance(timediv, str):
@@ -167,14 +168,13 @@ class SDS1104X:
                     self.connection.write(f'TDIV {s}')
                     break
 
-    def get_time_div(self):
+    def get_time_div(self) -> str:
         return self.connection.query('TDIV?')
 
-    def set_trig_delay(self, delay):
+    def set_trig_delay(self, delay : Union[str, float]):
         """
         The TRIG_DELAY command sets the time interval from the trigger event to the horizontal center point on the screen.
         The maximum position value depends on the time/division settings.
-
         delay : new delay value as a string with units (S/mS/uS/nS) or a float in seconds.
         """
         if isinstance(delay, str):
@@ -182,7 +182,7 @@ class SDS1104X:
         else:
             self.connection.write(f'TRDL {delay}S')
 
-    def get_trig_delay(self, delay):
+    def get_trig_delay(self) -> str:
         return self.connection.query('TRDL?')
 
     # TRIGGER COMMANDS
@@ -190,19 +190,18 @@ class SDS1104X:
     def set_trigger_mode(self, mode : TriggerMode):
         self.connection.write(f'TRMD {mode.name}')
 
-    def get_trigger_mode(self):
+    def get_trigger_mode(self) -> str:
         return self.connection.query('TRMD?')
 
     def set_trigger_slope(self, slope : TriggerSlope):
         self.connection.write(f'TRSL {slope.name}')
 
-    def get_trigger_slope(self):
+    def get_trigger_slope(self) -> str:
         return self.connection.query('TRSL?')
 
-    def set_trigger_level(self, level):
+    def set_trigger_level(self, level : Union[str, float]):
         """
         The TRIG_LEVEL command sets the trigger level voltage for the active trigger source.
-
         level : new trigger level as a string with units (V/mV) or a float in volts.
         """
         if isinstance(level, str):
@@ -210,7 +209,7 @@ class SDS1104X:
         else:
             self.connection.write(f'TRLV {level}V')
 
-    def get_trigger_level(self):
+    def get_trigger_level(self) -> str:
         return self.connection.query('TRLV?')
 
     # ACQUIRE COMMANDS
@@ -264,7 +263,7 @@ class SDS1104X:
 
     # PRINT COMMANDS
 
-    def capture_screen(self, filename):
+    def capture_screen(self, filename : str):
         """
         Captures the current screen to a bitmap file
         """
@@ -287,19 +286,18 @@ class SDS1104X_channel:
     Oscilloscope channel
     """
 
-    def __init__(self, name, connection):
+    def __init__(self, name : str, connection : pyvisa.resources.Resource):
         """
         Initialize channel object
 
         name        name of the channel
         connection  connection object to read/write from/to
         """
-
         self.connection = connection
         self.name = name
 
     # ATTN
-    def set_attenuation(self, value):
+    def set_attenuation(self, value : Union[str, float]):
         """
         The ATTENUATION command specifies the probe attenuation factor for the selected channel. The probe
         attenuation factor may be 0.1 to 10000. This command does not change the actual input sensitivity of the
@@ -321,7 +319,7 @@ class SDS1104X_channel:
 
         self.connection.write(f'{self.name}:ATTENUATION {closest_value}')
 
-    def get_attenuation(self):
+    def get_attenuation(self) -> str:
         return self.connection.query(f'{self.name}:ATTENUATION?')
 
     # BWL
@@ -329,7 +327,7 @@ class SDS1104X_channel:
     # CPL
 
     # OFST
-    def set_offset(self, offset):
+    def set_offset(self, offset : Union[str, float]):
         """
         The OFFSET command allows adjustment of the vertical offset of the specified input channel.
         The maximum ranges depend on the fixed sensitivity setting.
@@ -338,11 +336,11 @@ class SDS1104X_channel:
         """
         self.connection.write(f'{self.name}:OFFSET {offset}')
 
-    def get_offset(self):
+    def get_offset(self) -> str:
         return self.connection.query(f'{self.name}:OFFSET?')
 
     # SKEW
-    def set_skew(self, skew):
+    def set_skew(self, skew : float):
         """
         The SKEW command sets the channel-to-channel skew factor for the specified channel.
         Each analog channel can be adjusted + or -100 ns for a total of 200 ns difference between channels.
@@ -355,7 +353,7 @@ class SDS1104X_channel:
         else:
             raise ValueError('Skew nanoseconds must be between -100 and 100')
 
-    def get_skew(self):
+    def get_skew(self) -> str:
         return self.connection.query(f'{self.name}:SKEW?')
 
     # TRA
@@ -368,7 +366,7 @@ class SDS1104X_channel:
         else:
             self.connection.write(f'{self.name}:TRA OFF')
 
-    def get_trace(self):
+    def get_trace(self) -> str:
         return self.connection.query(f'{self.name}:TRA?')
 
     # UNIT
@@ -379,18 +377,18 @@ class SDS1104X_channel:
         """
         self.connection.write(f'{self.name}:UNIT {unit.name}')
 
-    def get_unit(self):
+    def get_unit(self) -> str:
         return self.connection.query(f'{self.name}:UNIT?')
 
     # VDIV
-    def set_volt_div(self, v_gain):
+    def set_volt_div(self, v_gain : float):
         """
         The VOLT_DIV command sets the vertical sensitivity in Volts/div.
         If the probe attenuation is changed, the scale value is multiplied by the probe's attenuation factor.
         """
         self.connection.write(f'{self.name}:VOLT_DIV {v_gain}')
 
-    def get_volt_div(self):
+    def get_volt_div(self) -> str:
         return self.connection.query(f'{self.name}:VOLT_DIV?')
 
     # INVS
@@ -400,6 +398,5 @@ class SDS1104X_channel:
         """
         self.connection.write(f'{self.name}:INVERTSET {"ON" if invert else "OFF"}')
 
-    def get_invert_trace(self):
+    def get_invert_trace(self) -> str:
         return self.connection.query(f'{self.name}:INVERTSET?')
-
