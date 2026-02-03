@@ -42,3 +42,11 @@ def connect_pyvisa_device(rm : pyvisa.ResourceManager,
                 connection = None
 
     return (connection, idn) # type: ignore
+
+
+def list_pyvisa_devices():
+    rm = pyvisa.ResourceManager()
+    all_resources = rm.list_resources()
+    for r in all_resources:
+        print(r)
+

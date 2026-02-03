@@ -1,0 +1,2 @@
+from LogikosTestToolAutomation.test_tool_common import list_pyvisa_devices
+list_pyvisa_devices()
