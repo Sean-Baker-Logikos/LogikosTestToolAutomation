@@ -3,7 +3,9 @@ Logikos Test Tool Automation Helper Scripts
 
 # Installation
 
-Install Python for Windows (if not already installed)
+This example assumes you have a new environment where you need to install everything. Skip any steps that are not necessary for you.
+
+Install Python for Windows
 
     winget install Python.Python.3.12
 
@@ -19,7 +21,8 @@ Install the extension for Python Environments if it is not also installed automa
 
 ![Install Python Extension](LogikosTestToolAutomation/Documentation/Install_Extension_Python.png)
 
-Create a folder to work out of. In this example, the directory is C:\Work\TestTools
+Create a folder to work out of, or select an existing folder.
+In this example, the directory is C:\Work\TestTools
 
 In Visual Studio Code, select File / Open Folder and select that folder.
 
