@@ -44,7 +44,7 @@ class UDP3305S:
         self.ch2 = UDP3305S_channel("CH2", self.connection, V_max=33, A_max=5.2)
         self.ch3 = UDP3305S_channel("CH3", self.connection, V_max=6.2, A_max=3.2)
         self.chSER = UDP3305S_channel("SER", self.connection, V_max=66, A_max=5.2)
-        self.chPARA = UDP3305S_channel("PAR", self.connection, V_max=33, A_max=10.4)
+        self.chPARA = UDP3305S_channel("PARA", self.connection, V_max=33, A_max=10.4)
 
     def __del__(self):
         if self.connection:
@@ -114,10 +114,10 @@ class UDP3305S_channel:
         """
         Set output voltage [V]
         """
-        if 0 < value < self.V_max:
+        if 0 < value <= self.V_max:
             self.connection.write(f"APPLY {self.name},{value}V")
         else:
-            raise ValueError(f"Voltage must be in [0, {self.V_max}V")
+            raise ValueError(f"Voltage must be in [0, {self.V_max}] V")
 
     def get_voltage(self):
         """
@@ -131,10 +131,10 @@ class UDP3305S_channel:
         
         value: current limit in Amps
         """
-        if 0 < value < self.A_max:
+        if 0 < value <= self.A_max:
             self.connection.write(f"APPLY {self.name},{value}A")
         else:
-            raise ValueError(f"Current must be in [0, {self.A_max}V")
+            raise ValueError(f"Current must be in [0, {self.A_max}] A")
 
     def get_current(self):
         """
@@ -143,59 +143,66 @@ class UDP3305S_channel:
         return float(self.connection.query(f"APPLY? {self.name},CURRENT").split(",")[1])
 
     def set_OVP(self, value : float, state : bool = True):
-        "set over voltage protection (OVP) value [V]"
-
-        if 0 < value < self.V_max:
+        """
+        set over voltage protection (OVP) value [V]
+        """
+        if 0 < value <= self.V_max:
             self.connection.write(f"OUTPUT:OVP:VALUE {self.name},{value}")
         else:
-            raise ValueError(f"OVP Voltage must be in [0, {self.V_max}V")
+            raise ValueError(f"OVP Voltage must be in [0, {self.V_max}] V")
 
         self.connection.write(f"OUTPUT:OVP:STATE {self.name},{'ON' if state else 'OFF'}")
 
     def get_OVP(self):
-        "return over voltage protection (OVP) value [V]"
-
+        """
+        return over voltage protection (OVP) value [V]
+        """
         value = float(self.connection.query(f"OUTPUT:OVP:VALUE? {self.name}"))
         state = self.connection.query(f"OUTPUT:OVP:STATE? {self.name}")
         return (value, state)
 
     def set_OCP(self, value : float, state : bool = True):
-        "set over current protection (OCP) value [A]"
-
-        if 0 < value < self.A_max:
+        """
+        set over current protection (OCP) value [A]
+        """
+        if 0 < value <= self.A_max:
             self.connection.write(f"OUTPUT:OCP:VALUE {self.name},{value}")
         else:
-            raise ValueError(f"OCP current must be in [0, {self.A_max}A")
+            raise ValueError(f"OCP current must be in [0, {self.A_max}] A")
 
         self.connection.write(f"OUTPUT:OCP:STATE {self.name},{'ON' if state else 'OFF'}")
 
     def get_OCP(self):
-        "return over current protection (OCP) value [A]"
-
+        """
+        return over current protection (OCP) value [A]
+        """
         value = float(self.connection.query(f"OUTPUT:OCP:VALUE? {self.name}"))
         state = self.connection.query(f"OUTPUT:OCP:STATE? {self.name}")
         return (value, state)
 
     def read_voltage(self):
-        "read (measure) output voltage [V]"
-
+        """
+        read (measure) output voltage [V]
+        """
         return float(self.connection.query(f"MEASURE:VOLT? {self.name}"))
 
     def read_current(self):
-        "read (measure) output current [A]"
-
+        """
+        read (measure) output current [A]
+        """
         return float(self.connection.query(f"MEASURE:CURRENT? {self.name}"))
 
     def read_power(self):
-        "read (measure) output power [W]"
-
+        """
+        read (measure) output power [W]
+        """
         return float(self.connection.query(f"MEASURE:POWER? {self.name}"))
 
     def read_all(self):
-        "read (measure) output values: Volts [V], current [A], Power[W]"
-
-        ret = [float(x) for x in self.connection.query(f"MEASURE:ALL? {self.name}").split(",")]
-        return ret
+        """
+        read (measure) output values: Volts [V], current [A], Power[W]
+        """
+        return [float(x) for x in self.connection.query(f"MEASURE:ALL? {self.name}").split(",")]
 
     def on(self):
         """
@@ -208,4 +215,3 @@ class UDP3305S_channel:
         Turn channel off
         """
         self.connection.write(f"OUTPUT:STATE {self.name},OFF")
-
