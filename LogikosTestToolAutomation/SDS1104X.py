@@ -1,7 +1,6 @@
 import pyvisa
 from LogikosTestToolAutomation import test_tool_common
-from typing import Optional, Union
-from dataclasses import dataclass
+from typing import Union
 from enum import Enum, Flag
 
 """

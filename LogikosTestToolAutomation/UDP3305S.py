@@ -1,6 +1,7 @@
 import pyvisa
 from LogikosTestToolAutomation import test_tool_common
-from typing import Optional
+from enum import Enum
+import time
 
 """
 Controlling a UNI-T UDP3305S power supply
@@ -14,8 +15,13 @@ class UDP3305S:
         ch2     channel2 (max 33V 5.2A)
         ch3     channel3 (max 6.2V 3.2A)
         chSER   virtual channel vor serial mode (max 66V 5.2A)
-        chPAR   virtual channel for parallel mode (max 33V 10.4A)
+        chPARA  virtual channel for parallel mode (max 33V 10.4A)
     """
+
+    class Mode(Enum):
+        NORM    = 0
+        SER     = 1
+        PARA    = 2
 
     def __init__(self, RID : str = ""):
         """
@@ -38,7 +44,7 @@ class UDP3305S:
         self.ch2 = UDP3305S_channel("CH2", self.connection, V_max=33, A_max=5.2)
         self.ch3 = UDP3305S_channel("CH3", self.connection, V_max=6.2, A_max=3.2)
         self.chSER = UDP3305S_channel("SER", self.connection, V_max=66, A_max=5.2)
-        self.chPAR = UDP3305S_channel("PAR", self.connection, V_max=33, A_max=10.4)
+        self.chPARA = UDP3305S_channel("PAR", self.connection, V_max=33, A_max=10.4)
 
     def __del__(self):
         if self.connection:
@@ -47,32 +53,43 @@ class UDP3305S:
     def __str__(self):
         return f"{self.idn['model']} 3-channel lab power supply\nSN:{self.idn['SN']}\nFirmware: {self.idn['firmware']}"
 
+    def set_mode(self, mode : Mode):
+        """
+        Sets the mode of the power supply channels 1 and 2, either normal, serial or parallel.
+        mode : UDP3305S.Mode
+        """
+        self.connection.write(f"SOURCE:MODE {mode.name}")
+
+        # It takes some time for the power supply to switch modes, during this time if executing the commands related
+        # to work mode of the power supply, it may cause the command execution to fail. Therefore, after switching
+        # work mode of the power supply, a new command is executed after an interval of at least 500 milliseconds.
+        time.sleep(0.5)
+
     def get_mode(self):
-        "return output mode (NORMAL | SER | PARA)"
         return self.connection.query("SOURCE:MODE?")
 
-    def set_mode(self, mode):
-        "set output mode (NORMAL | SER | PARA)"
-
-        if mode.upper() in ("NORMAL", "NORM", "SER", "PARA"):
-            self.connection.write(f"SOURCE:MODE {mode}")
-        else:
-            raise ValueError(f"'{mode}' is not a valid output mode")
-
     def on(self):
-        "turn on all outputs"
+        """
+        Turn on all outputs
+        """
         self.connection.write(f"OUTPUT:STATE ALL,ON")
 
     def off(self):
-        "turn off all outputs"
+        """
+        Turn off all outputs
+        """
         self.connection.write(f"OUTPUT:STATE ALL,OFF")
 
     def lock(self):
-        "lock keys on instrument panel"
+        """
+        Lock keys on instrument panel
+        """
         self.connection.write("LOCK ON")
 
     def unlock(self):
-        "unlock keys on instrument panel"
+        """
+        Unlock keys on instrument panel
+        """
         self.connection.write("LOCK OFF")
 
 
@@ -95,7 +112,7 @@ class UDP3305S_channel:
 
     def set_voltage(self, value : float):
         """
-        set output voltage [V]
+        Set output voltage [V]
         """
         if 0 < value < self.V_max:
             self.connection.write(f"APPLY {self.name},{value}V")
@@ -104,25 +121,26 @@ class UDP3305S_channel:
 
     def get_voltage(self):
         """
-        get output voltage [V]
+        Get output voltage [V]
         """
-
         return float(self.connection.query(f"APPLY? {self.name},VOLT").split(",")[1])
 
     def set_current(self, value : float):
-        "set current limit [A]"
-
+        """
+        Set current limit [A]
+        
+        value: current limit in Amps
+        """
         if 0 < value < self.A_max:
             self.connection.write(f"APPLY {self.name},{value}A")
         else:
             raise ValueError(f"Current must be in [0, {self.A_max}V")
 
     def get_current(self):
-        "get current limit [A]"
-
-        return (
-            float(self.connection.query(f"APPLY? {self.name},CURRENT").split(",")[1])
-        )
+        """
+        Get current limit [A]
+        """
+        return float(self.connection.query(f"APPLY? {self.name},CURRENT").split(",")[1])
 
     def set_OVP(self, value : float, state : bool = True):
         "set over voltage protection (OVP) value [V]"
@@ -180,10 +198,14 @@ class UDP3305S_channel:
         return ret
 
     def on(self):
-        "turn output on"
+        """
+        Turn channel on
+        """        
         self.connection.write(f"OUTPUT:STATE {self.name},ON")
 
     def off(self):
-        "turn output off"
+        """
+        Turn channel off
+        """
         self.connection.write(f"OUTPUT:STATE {self.name},OFF")
 
