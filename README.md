@@ -48,9 +48,9 @@ A new window should open at the bottom with a command prompt. In the terminal wi
 
 ![Install LogikosTestToolAutomation](LogikosTestToolAutomation/Documentation/Install_LogikosTestToolAutomation.png)
 
-# Run Sample Code
+# Test Installation
 
-In your working folder, create a new file "list_test_tools.py" and open that file in Visual Studio Code.
+In your working folder, create a new file "ListTestTools.py" and open that file in Visual Studio Code.
 
 Enter the following code:
 
