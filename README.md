@@ -67,7 +67,6 @@ If you have a test tool connected, you should see something like the following:
 
 # Documentation and Examples
 
-- UDP3305S
+- [UDP3305S](LogikosTestToolAutomation/Documentation/UDP3305S.md)
 - [SDS1104X](LogikosTestToolAutomation/Documentation/SDS1104X.md)
 - DL3021A
-
