@@ -285,7 +285,7 @@ class SDS1104X_channel:
     Oscilloscope channel
     """
 
-    def __init__(self, name : str, connection : pyvisa.resources.Resource):
+    def __init__(self, name : str, connection : pyvisa.resources.MessageBasedResource):
         """
         Initialize channel object
 

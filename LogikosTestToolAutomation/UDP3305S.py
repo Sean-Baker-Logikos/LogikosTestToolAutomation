@@ -97,7 +97,7 @@ class UDP3305S_channel:
     """
     Class representing a single channel of the UDP3305S power supply
     """
-    def __init__(self, name, connection, V_max, A_max):
+    def __init__(self, name : str, connection : pyvisa.resources.MessageBasedResource, V_max : float, A_max : float):
         """
         Initialize channel object
             name        name of the channel
@@ -128,7 +128,7 @@ class UDP3305S_channel:
     def set_current(self, value : float):
         """
         Set current limit [A]
-        
+
         value: current limit in Amps
         """
         if 0 < value <= self.A_max:
@@ -207,7 +207,7 @@ class UDP3305S_channel:
     def on(self):
         """
         Turn channel on
-        """        
+        """
         self.connection.write(f"OUTPUT:STATE {self.name},ON")
 
     def off(self):
