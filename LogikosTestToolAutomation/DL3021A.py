@@ -1,7 +1,9 @@
+from turtle import mode
 import pyvisa
 from LogikosTestToolAutomation import test_tool_common
 from typing import Optional, Union
 from dataclasses import dataclass
+from enum import Enum
 
 """
 Controlling a RIGOL DL3021A DC Electronic Load
@@ -15,6 +17,20 @@ class DL3021A:
     """
     RIGOL DL3021A DC Electronic Load
     """
+
+    class Function(Enum):
+        CURR    = 0     # Constant current (CC)
+        VOLT    = 1     # Constant voltage (CV)
+        RES     = 2     # Constant resistance (CR)
+        POW     = 3     # Constant power (CP)
+
+    class Mode(Enum):
+        FIX     = 0
+        LIST    = 1
+        WAV     = 2
+        BATT    = 3
+        OCP     = 4
+        OPP     = 5
 
     def __init__(self, RID : str = ""):
         """
@@ -48,85 +64,20 @@ class DL3021A:
             raise RuntimeError(f"Instrument not connected.")
 
         self.connection.write("*WAI")
-
-    # :STATUS:QUESTIONABLE:CONDITION?
-    # :STATUS:QUESTIONABLE:ENABLE
-    # :STATUS:QUESTIONABLE[:EVENT]?
-    # :STATUS:PRESET
-    # :STATUS:OPERATION:CONDITION?
-    # :STATUS:OPERATION:ENABLE
-    # :STATUS:OPERATION[:EVENT]?
-
-    # :FETCH:VOLTAGE[:DC]?
-    # :MEASURE:VOLTAGE[:DC]?
-    # :FETCH:VOLTAGE:MAX?
-    # :MEASURE:VOLTAGE:MAX?
-    # :FETCH:VOLTAGE:MIN?
-    # :MEASURE:VOLTAGE:MIN?
-    # :FETCH:CURRENT[:DC]?
-    # :MEASURE:CURRENT[:DC]?
-    # :FETCH:CURRENT:MAX?
-    # :MEASURE:CURRENT:MAX?
-    # :FETCH:CURRENT:MIN?
-    # :MEASURE:CURRENT:MIN?
-    # :FETCH:RESISTANCE[:DC]?
-    # :MEASURE:RESISTANCE[:DC]?
-    # :FETCH:POWER[:DC]?
-    # :MEASURE:POWER[:DC]?
-    # :FETCH:CAPABILITY?
-    # :MEASURE:CAPABILITY?
-    # :FETCH:WATTHOURS?
-    # :MEASURE:WATTHOURS?
-    # :FETCH:DISCHARGINGTIME?
-    # :MEASURE:DISCHARGINGTIME?
-    # :FETCH:TIME?
-    # :MEASURE:TIME?
-    # :FETCH:WAVEDATA?
-    # :MEASURE:WAVEDATA?
-
-    # :TRIGGER
-    # :TRIGGER:SOURCE
-
-
-    def get_state(self):
-        """
-        Queries whether the input of the electronic load is on or off.
-        """
-        return self.connection.query(":SOURCE:INPUT:STATE?")
-
-    def set_state(self, state):
-        """
-        Sets the input of the electronic load to be on or off.
-        state: {0|1|ON|OFF}
-        """
-
-        if state == 0 or state == 1 or state.upper() in ("ON", "OFF"):
-            self.connection.write(f":SOURCE:INPUT:STATE {state}")
-        else:
-            raise ValueError(f"'{state}' is not a valid state")
-
+    
     def on(self):
-        self.set_state("ON")
+        self.connection.write(f':SOURCE:INPUT:STATE ON')
 
     def off(self):
-        self.set_state("OFF")
+        self.connection.write(f':SOURCE:INPUT:STATE OFF')
 
-    def get_function(self):
+    def set_mode(self, mode : Mode):
         """
-        Queries the static operation mode of the electronic load.
+        The input regulation mode setting is controlled by the FUNCtion command, the list command,
+        the waveform display command, the battery discharge command, the OCP command, or the OPP command.
+        mode: {FIX|LIST|WAV|BATT|OCP|OPP}
         """
-        return self.connection.query(":SOURCE:FUNC?")
-
-    def set_function(self, fn):
-        """
-        Sets the static operation mode of the electronic load.
-        fn: {CURR|RES|VOLT|POW}
-        """
-
-        if fn.upper() in ("CURR", "RES", "VOLT", "POW"):
-            self.connection.write(f":SOURCE:FUNC {fn}")
-        else:
-            raise ValueError(f"'{fn}' is not a valid function")
+        self.connection.write(f":SOURCE:FUNCTION:MODE {mode.name}")
 
     def get_mode(self):
         """
@@ -145,17 +96,18 @@ class DL3021A:
         """
         return self.connection.query(":SOURCE:FUNCTION:MODE?")
 
-    def set_mode(self, mode):
+    def set_function(self, fn : Function):
         """
-        The input regulation mode setting is controlled by the FUNCtion command, the list command,
-        the waveform display command, the battery discharge command, the OCP command, or the OPP command.
-        mode: {FIX|LIST|WAV|BATT|OCP|OPP}
+        Sets the static operation mode of the electronic load.
+        fn: {CURR|RES|VOLT|POW}
         """
+        self.connection.write(f":SOURCE:FUNC {fn.name}")
 
-        if mode.upper() in ("FIX", "LIST", "WAV", "BATT", "OCP", "OPP"):
-            self.connection.write(f":SOURCE:FUNCTION:MODE {mode}")
-        else:
-            raise ValueError(f"'{mode}' is not a valid input regulation mode")
+    def get_function(self):
+        """
+        Queries the static operation mode of the electronic load.
+        """
+        return self.connection.query(":SOURCE:FUNC?")
 
     @dataclass
     class const_current_values:
@@ -168,6 +120,7 @@ class DL3021A:
 
     def setup_const_current(self,
             current: Optional[Union[float, str]] = None,
+            *,
             range: Optional[Union[float, str]] = None,
             slew: Optional[Union[float, str]] = None,
             von: Optional[Union[float, str]] = None,
@@ -222,6 +175,7 @@ class DL3021A:
 
     def setup_const_voltage(self,
             voltage: Optional[Union[float, str]] = None,
+            *,
             range: Optional[Union[float, str]] = None,
             v_limit: Optional[Union[float, str]] = None,
             c_limit: Optional[Union[float, str]] = None):
@@ -264,6 +218,7 @@ class DL3021A:
 
     def setup_const_resistance(self,
             resistance: Optional[Union[float, str]] = None,
+            *,
             range: Optional[Union[float, str]] = None,
             v_limit: Optional[Union[float, str]] = None,
             c_limit: Optional[Union[float, str]] = None):
@@ -305,6 +260,7 @@ class DL3021A:
 
     def setup_const_power(self,
             power: Optional[Union[float, str]] = None,
+            *,
             v_limit: Optional[Union[float, str]] = None,
             c_limit: Optional[Union[float, str]] = None):
         """
@@ -333,78 +289,26 @@ class DL3021A:
 
         return DL3021A.const_power_values(power, v_limit, i_limit)
 
+    def get_voltage(self) -> float:
+        """
+        Queries the present voltage value.
+        """
+        return float(self.connection.query(":MEASURE:VOLTAGE?"))
+    
+    def get_current(self) -> float:
+        """
+        Queries the present current value.
+        """
+        return float(self.connection.query(":MEASURE:CURRENT?"))
+    
+    def get_resistance(self) -> float:
+        """
+        Queries the present resistance value.
+        """
+        return float(self.connection.query(":MEASURE:RESISTANCE?"))
 
-
-
-
-
-
-
-
-    # :SOURCE:CURRENT:SLEW:POSITIVE
-    # :SOURCE:CURRENT:SLEW:NEGATIVE
-
-    # :SOURCE:CURRENT:TRANSIENT:MODE
-    # :SOURCE:CURRENT:TRANSIENT:ALEVEL
-    # :SOURCE:CURRENT:TRANSIENT:BLEVEL
-    # :SOURCE:CURRENT:TRANSIENT:AWIDTH
-    # :SOURCE:CURRENT:TRANSIENT:BWIDTH
-    # :SOURCE:CURRENT:TRANSIENT:FREQUENCY
-    # :SOURCE:CURRENT:TRANSIENT:PERIOD
-    # :SOURCE:CURRENT:TRANSIENT:ADUTY
-
-
-
-
-    # :SOURCE:LIST:MODE
-    # :SOURCE:LIST:RANGE
-    # :SOURCE:LIST:COUNT
-    # :SOURCE:LIST:STEP
-    # :SOURCE:LIST:LEVEL
-    # :SOURCE:LIST:WIDTH
-    # :SOURCE:LIST:SLEW
-    # :SOURCE:LIST:END
-    # :SOURCE:BATTARY:RANGE
-    # :SOURCE:BATTARY:LEVEL
-    # :SOURCE:BATTARY:VSTOP
-    # :SOURCE:BATTARY:CSTOP
-    # :SOURCE:BATTARY:TIMESTOP
-    # :SOURCE:BATTARY:VON
-    # :SOURCE:BATTARY:VENABSTOP
-    # :SOURCE:BATTARY:CENABSTOP
-    # :SOURCE:BATTARY:TENABSTOP
-    # :SOURCE:OCP:RANGE
-    # :SOURCE:OCP:VON
-    # :SOURCE:OCP:VONDELAY
-    # :SOURCE:OCP:ISET
-    # :SOURCE:OCP:ISTEP
-    # :SOURCE:OCP:IDELAYSTEP
-    # :SOURCE:OCP:IMAX
-    # :SOURCE:OCP:IMIN
-    # :SOURCE:OCP:VOCP
-    # :SOURCE:OCP:TOCP
-    # :SOURCE:OPP:VON
-    # :SOURCE:OPP:VONDELAY
-    # :SOURCE:OPP:PSET
-    # :SOURCE:OPP:PSTEP
-    # :SOURCE:OPP:PDELAYSTEP
-    # :SOURCE:OPP:PMAX
-    # :SOURCE:OPP:PMIN
-    # :SOURCE:OPP:VOPP
-    # :SOURCE:OPP:TOPP
-    # :SOURCE:WAVE:TIME
-    # :SOURCE:WAVE:TSTEP
-    # :SOURCE:SENSE
-
-    # :SYSTEM:KEY
-    # :SYSTEM:ERROR?
-    # :SYSTEM:VERSION?
-    # :SYSTEM:IDN
-
-    # LXI:IDENTIFY:STATE
-    # LXI:MDNS:ENABLE
-    # LXI:RESET
-    # LXI:RESTART
-
-    # :LIC:SET
-
+    def get_power(self) -> float:
+        """
+        Queries the present power value.
+        """
+        return float(self.connection.query(":MEASURE:POWER?"))

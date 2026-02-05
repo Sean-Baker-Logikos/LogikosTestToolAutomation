@@ -69,4 +69,4 @@ If you have a test tool connected, you should see something like the following:
 
 - [UDP3305S](LogikosTestToolAutomation/Documentation/UDP3305S.md)
 - [SDS1104X](LogikosTestToolAutomation/Documentation/SDS1104X.md)
-- DL3021A
+- [DL3021A](LogikosTestToolAutomation/Documentation/DL3021A.md)
