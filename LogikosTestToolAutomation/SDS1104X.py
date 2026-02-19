@@ -51,6 +51,33 @@ class SDS1104X:
         V = 0
         A = 1
 
+    class CouplingMode(Enum):
+        A1M = 0
+        D1M = 1
+        GND = 2
+        
+    class CursorMode(Enum):
+        OFF = 0
+        MANUAL = 1
+        TRACK = 2
+
+    class CursorType(Enum):
+        X = 0
+        Y = 1
+        X_Y = 2
+    
+    class CursorValueType(Enum):
+        HREL = 0
+        VREL = 1
+    
+    class Cursor(Enum):
+        VREF = 0
+        VDIF = 1
+        TREF = 2
+        TDIF = 3
+        HREF = 4
+        HDIF = 5
+
     def __init__(self, RID : str = ""):
         """
         Initialize SDS1104X instance
@@ -227,9 +254,30 @@ class SDS1104X:
 
     # CURSOR COMMANDS
     # CRMS                                    <<  {OFF,MANUAL,TRACK}
-    # CRST                                    << ??
-    # CRTY                                    <<
-    # CRVA?                                   <<  C1:CRVA? VREL
+
+    def set_cursor_measure(self, mode : SDS1104X.CursorMode):
+        """
+        The CURSOR_MEASURE command specifies the type
+        of cursor or parameter measurement to be displayed
+        """
+        self.connection.write(f'CRMS {mode.name}')
+
+    def get_cursor_measure(self) -> str:
+        return self.connection.query('CRMS?')
+
+    # CRTY       
+    #                              <<
+
+    def set_cursor_type(self, type: SDS1104X.CursorType):
+        """
+        The CURSOR_TYPE command specifies the type
+        of cursor to be displayed when the cursor mode is manual.
+        """
+        self.connection.write(f'CRTY {type.name.replace('_','-')}')
+
+    def get_cursor_type(self) -> str:
+        return self.connection.query('CRTY?')
+    
 
     '''
     print(dev.connection.query('CRTY?'))
@@ -322,8 +370,31 @@ class SDS1104X_channel:
         return self.connection.query(f'{self.name}:ATTENUATION?')
 
     # BWL
+    def set_bandwidth(self, bandwidth:Union[str, bool]):
+        """
+        The BANDWIDTH_LIMIT enables or disables the bandwidth-limiting low-pass filter.
+        """
+        self.connection.write(f'BWL {self.name},{"ON" if bandwidth else "OFF"}')
+
+    def get_bandwidth(self) -> str:
+        return self.connection.query(f'{self.name}:BWL?')
 
     # CPL
+    def set_coupling(self, coupling : SDS1104X.CouplingMode):
+        """
+        The COUPLING command selects the coupling mode of the specified input channel
+        Valid coupling values are A1M, D1M, or GND
+            A — alternating current.
+            D — direct current.
+            1M — 1MΩ input impedance.
+            GND — Ground
+            
+            Note: Other models have additional modes for 50Ω input impedance which this model does not use
+        """
+        self.connection.write(f'{self.name}:CPL {coupling.name}')
+
+    def get_coupling(self) -> str:
+        return self.connection.query(f'{self.name}:CPL?')
 
     # OFST
     def set_offset(self, offset : Union[str, float]):
@@ -399,3 +470,51 @@ class SDS1104X_channel:
 
     def get_invert_trace(self) -> str:
         return self.connection.query(f'{self.name}:INVERTSET?')
+    
+    # CRVA?                                   <<  C1:CRVA? VREL
+
+    def get_cursor_value(self, value: SDS1104X.CursorValueType) -> str:
+        """
+        The CURSOR_VALUE? query returns the values
+        measured by the specified cursors for a given trace.
+        """
+        return self.connection.query(f'{self.name}:CRVA? {value.name}')
+
+
+    # CRST                                    << ??
+        
+    def set_cursor_position(self, cursor: SDS1104X.Cursor, value: Union[str, float]):
+        """
+        The CURSOR_SET command allows the user to position
+        any one of the four independent cursors at a given
+        screen location, regardless of whether the cursor 
+        is currently displayed
+            VREF — The voltage-value of Y1 (curA) under
+            manual mode.
+            VDIF — The voltage-value of Y2 (curB) under
+            manual mode.
+            TREF — The time value of X1 (curA) under manual
+            mode.
+            TDIF — The time value of X2 (curB) under manual
+            mode.
+            HREF — The time value of X1 (curA) under track
+            mode.
+            HDIF — The time value of X2 (curB) under track
+            mode.
+
+        value: The value of the cursor position as a string with units or a float
+        using the default unit, with different valid units based on the cursor being set.
+
+            VREF, VDIF: Valid units are V/mV and default unit is volts.
+
+            TREF,TDIF,HREF,HDIF: Valid units are S/mS/uS/nS and the 
+            default unit is seconds.
+            
+        """
+
+        self.connection.write(f'{self.name}:CRST {cursor.name},{value}')
+    
+    def get_cursor_position(self, cursor: SDS1104X.Cursor) -> str:
+        return self.connection.query(f'{self.name}:CRST? {cursor.name}')
+        
+    
