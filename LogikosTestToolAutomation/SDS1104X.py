@@ -255,7 +255,7 @@ class SDS1104X:
     # CURSOR COMMANDS
     # CRMS                                    <<  {OFF,MANUAL,TRACK}
 
-    def set_cursor_measure(self, mode : SDS1104X.CursorMode):
+    def set_cursor_measure(self, mode : CursorMode):
         """
         The CURSOR_MEASURE command specifies the type
         of cursor or parameter measurement to be displayed
@@ -268,7 +268,7 @@ class SDS1104X:
     # CRTY       
     #                              <<
 
-    def set_cursor_type(self, type: SDS1104X.CursorType):
+    def set_cursor_type(self, type: CursorType):
         """
         The CURSOR_TYPE command specifies the type
         of cursor to be displayed when the cursor mode is manual.
