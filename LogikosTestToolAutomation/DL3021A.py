@@ -1,4 +1,3 @@
-from turtle import mode
 import pyvisa
 from LogikosTestToolAutomation import test_tool_common
 from typing import Optional, Union
@@ -312,3 +311,19 @@ class DL3021A:
         Queries the present power value.
         """
         return float(self.connection.query(":MEASURE:POWER?"))
+
+
+    def execute_command(self, command : list):
+        match command[0]:
+            case "list":
+                print("Available commands:")
+                print("  list - list available commands")
+                print("  on - turn on load")
+                print("  off - turn off load")
+            case "on":
+                self.on()
+            case "off":
+                self.off()
+            case _:
+                print(f"Command '{command}' not found.")
+

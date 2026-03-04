@@ -92,6 +92,44 @@ class UDP3305S:
         """
         self.connection.write("LOCK OFF")
 
+    def execute_command(self, command : list):
+        match command[0]:
+            case "list":
+                print("Available commands:")
+                print("  list - list available commands")
+                print("  on - turn on all outputs")
+                print("  off - turn off all outputs")
+                print("  lock - lock keys on instrument panel")
+                print("  unlock - unlock keys on instrument panel")
+                print("  ch# <cmd> - channel commands (ch1, ch2, ch3, chSER, chPARA)")
+                print("      on - turn on channel output")
+                print("      off - turn off channel output")
+                print("      voltage <value> - set channel voltage [V]")
+                print("      current <value> - set channel current limit [A]")
+                print("      OVP <value> - set channel over voltage protection (OVP) value [V] or 'OFF' to disable")
+                print("      OCP <value> - set channel over current protection (OCP) value [A] or 'OFF' to disable")
+                print("      read - measure channel output voltage, current, and power")
+            case "on":
+                self.on()
+            case "off":
+                self.off()
+            case "lock":
+                self.lock()
+            case "unlock":
+                self.unlock()
+            case "ch1":
+                self.ch1.execute_command(command[1:])
+            case "ch2":
+                self.ch2.execute_command(command[1:])
+            case "ch3":
+                self.ch3.execute_command(command[1:])
+            case "chSER":
+                self.chSER.execute_command(command[1:])
+            case "chPARA":
+                self.chPARA.execute_command(command[1:])    
+            case _:
+                print(f"Command '{command}' not found.")
+
 
 class UDP3305S_channel:
     """
@@ -215,3 +253,54 @@ class UDP3305S_channel:
         Turn channel off
         """
         self.connection.write(f"OUTPUT:STATE {self.name},OFF")
+
+
+    def execute_command(self, command : list):
+        match command[0]:
+            case "list":
+                print(f"Available commands for {self.name}:")
+                print("  list - list available commands")
+                print("  on - turn on channel output")
+                print("  off - turn off channel output")
+                print("  voltage <value> - set channel voltage [V]")
+                print("  current <value> - set channel current limit [A]")
+                print("  OVP <value> - set channel over voltage protection (OVP) value [V] or 'OFF' to disable")
+                print("  OCP <value> - set channel over current protection (OCP) value [A] or 'OFF' to disable")
+                print("  read - measure channel output voltage, current, and power")
+            case "on":
+                self.on()
+            case "off":
+                self.off()
+            case "voltage":
+                if len(command) > 1:
+                    self.set_voltage(float(command[1]))
+                else:
+                    raise ValueError("Voltage value not specified.")
+            case "current":
+                if len(command) > 1:
+                    self.set_current(float(command[1]))
+                else:
+                    raise ValueError("Current value not specified.")
+            case "OVP":
+                if len(command) > 1:
+                    if command[1].upper() == "OFF":
+                        self.set_OVP(0, state=False)
+                    else:
+                        self.set_OVP(float(command[1]), state=True)
+                else:
+                    raise ValueError("OVP value not specified.")
+            case "OCP":
+                if len(command) > 1:
+                    if command[1].upper() == "OFF":
+                        self.set_OCP(0, state=False)
+                    else:
+                        self.set_OCP(float(command[1]), state=True)
+                else:
+                    raise ValueError("OCP value not specified.")
+            case "read":
+                voltage = self.read_voltage()
+                current = self.read_current()
+                power = self.read_power()
+                print(f"{self.name} Output: {voltage:.2f} V, {current:.2f} A, {power:.2f} W")
+            case _:
+                print(f"Command '{command}' not found for {self.name}.")
