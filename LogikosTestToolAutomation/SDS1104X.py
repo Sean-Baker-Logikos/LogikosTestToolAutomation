@@ -55,7 +55,7 @@ class SDS1104X:
         A1M = 0
         D1M = 1
         GND = 2
-        
+
     class CursorMode(Enum):
         OFF = 0
         MANUAL = 1
@@ -65,11 +65,11 @@ class SDS1104X:
         X = 0
         Y = 1
         X_Y = 2
-    
+
     class CursorValueType(Enum):
         HREL = 0
         VREL = 1
-    
+
     class Cursor(Enum):
         VREF = 0
         VDIF = 1
@@ -109,6 +109,57 @@ class SDS1104X:
 
     def __str__(self):
         return f"{self.idn['model']} Digital Storage Oscilloscope\nSN:{self.idn['SN']}\nFirmware: {self.idn['firmware']}"
+
+    def execute_command(self, command : list):
+        match command[0]:
+            case "list":
+                print("Available commands:")
+                print("  list - list available commands")
+                print("  default - reset oscilloscope to default settings")
+                print("  auto_setup - automatically adjust controls for input signal")
+                print("  write_state_file <filename> - save current oscilloscope state to XML file")
+                print("  load_state_file <filename> - load oscilloscope state from XML file")
+                print("  capture_screen <filename> - capture current screen to bitmap file")
+                print("  ch# <cmd> - execute channel command (ch1, ch2, ch3, ch4)")
+                print("      set_attenuation <value> - set channel attenuation")
+                print("      set_bandwidth <on/off> - set channel bandwidth limit")
+                print("      set_coupling <A1M/D1M/GND> - set channel coupling mode")
+                print("      set_offset <value> - set channel offset")
+                print("      set_skew <value> - set channel skew")
+                print("      set_trace <on/off> - set channel trace display")
+                print("      set_unit <V/A> - set channel unit")
+                print("      set_volt_div <value> - set channel volts/div")
+                print("      set_invert_trace <on/off> - set channel invert trace")
+                print("      set_cursor_position <cursor> <value> - set channel cursor position")
+            case "default":
+                self.default()
+            case "auto_setup":
+                self.auto_setup()
+            case "write_state_file":
+                if len(command) < 2:
+                    print("Error: Missing filename argument for write_state_file command.")
+                else:
+                    self.write_state_file(command[1])
+            case "load_state_file":
+                if len(command) < 2:
+                    print("Error: Missing filename argument for load_state_file command.")
+                else:
+                    self.load_state_file(command[1])
+            case "capture_screen":
+                if len(command) < 2:
+                    print("Error: Missing filename argument for capture_screen command.")
+                else:
+                    self.capture_screen(command[1])
+            case "ch1":
+                self.ch1.execute_command(command[1:])
+            case "ch2":
+                self.ch2.execute_command(command[1:])
+            case "ch3":
+                self.ch3.execute_command(command[1:])
+            case "ch4":
+                self.ch4.execute_command(command[1:])
+            case _:
+                print(f"Command '{command}' not found.")
 
     # STATUS COMMANDS
 
@@ -265,7 +316,7 @@ class SDS1104X:
     def get_cursor_measure(self) -> str:
         return self.connection.query('CRMS?')
 
-    # CRTY       
+    # CRTY
     #                              <<
 
     def set_cursor_type(self, type: CursorType):
@@ -277,7 +328,7 @@ class SDS1104X:
 
     def get_cursor_type(self) -> str:
         return self.connection.query('CRTY?')
-    
+
 
     '''
     print(dev.connection.query('CRTY?'))
@@ -326,60 +377,6 @@ class SDS1104X:
         The BUZZER command enables or disables the buzzer.
         """
         self.connection.write(f'BUZZ {"ON" if buzz else "OFF"}')
-
-
-    def execute_command(self, command : list):
-        match command[0]:
-            case "list":
-                print("Available commands:")
-                print("  list - list available commands")
-                print("  default - reset oscilloscope to default settings")
-                print("  auto_setup - automatically adjust controls for input signal")
-                print("  write_state_file <filename> - save current oscilloscope state to XML file")
-                print("  load_state_file <filename> - load oscilloscope state from XML file")
-                print("  capture_screen <filename> - capture current screen to bitmap file")
-                print("  ch# <cmd> - execute channel command (ch1, ch2, ch3, ch4)")
-                print("      set_attenuation <value> - set channel attenuation")
-                print("      set_bandwidth <on/off> - set channel bandwidth limit")
-                print("      set_coupling <A1M/D1M/GND> - set channel coupling mode")
-                print("      set_offset <value> - set channel offset")
-                print("      set_skew <value> - set channel skew")
-                print("      set_trace <on/off> - set channel trace display")
-                print("      set_unit <V/A> - set channel unit")
-                print("      set_volt_div <value> - set channel volts/div")
-                print("      set_invert_trace <on/off> - set channel invert trace")
-                print("      set_cursor_position <cursor> <value> - set channel cursor position")
-
-                
-            case "default":
-                self.default()
-            case "auto_setup":
-                self.auto_setup()
-            case "write_state_file":
-                if len(command) < 2:
-                    print("Error: Missing filename argument for write_state_file command.")
-                else:
-                    self.write_state_file(command[1])
-            case "load_state_file":
-                if len(command) < 2:
-                    print("Error: Missing filename argument for load_state_file command.")
-                else:
-                    self.load_state_file(command[1])
-            case "capture_screen":
-                if len(command) < 2:
-                    print("Error: Missing filename argument for capture_screen command.")
-                else:
-                    self.capture_screen(command[1])
-            case "ch1":
-                self.ch1.execute_command(command[1:])
-            case "ch2":
-                self.ch2.execute_command(command[1:])
-            case "ch3":
-                self.ch3.execute_command(command[1:])
-            case "ch4":
-                self.ch4.execute_command(command[1:])
-            case _:
-                print(f"Command '{command}' not found.")
 
 
 class SDS1104X_channel:
@@ -442,7 +439,7 @@ class SDS1104X_channel:
             D — direct current.
             1M — 1MΩ input impedance.
             GND — Ground
-            
+
             Note: Other models have additional modes for 50Ω input impedance which this model does not use
         """
         self.connection.write(f'{self.name}:CPL {coupling.name}')
@@ -524,7 +521,7 @@ class SDS1104X_channel:
 
     def get_invert_trace(self) -> str:
         return self.connection.query(f'{self.name}:INVERTSET?')
-    
+
     # CRVA?                                   <<  C1:CRVA? VREL
 
     def get_cursor_value(self, value: SDS1104X.CursorValueType) -> str:
@@ -536,12 +533,12 @@ class SDS1104X_channel:
 
 
     # CRST                                    << ??
-        
+
     def set_cursor_position(self, cursor: SDS1104X.Cursor, value: Union[str, float]):
         """
         The CURSOR_SET command allows the user to position
         any one of the four independent cursors at a given
-        screen location, regardless of whether the cursor 
+        screen location, regardless of whether the cursor
         is currently displayed
             VREF — The voltage-value of Y1 (curA) under
             manual mode.
@@ -561,32 +558,19 @@ class SDS1104X_channel:
 
             VREF, VDIF: Valid units are V/mV and default unit is volts.
 
-            TREF,TDIF,HREF,HDIF: Valid units are S/mS/uS/nS and the 
+            TREF,TDIF,HREF,HDIF: Valid units are S/mS/uS/nS and the
             default unit is seconds.
-            
+
         """
 
         self.connection.write(f'{self.name}:CRST {cursor.name},{value}')
-    
+
     def get_cursor_position(self, cursor: SDS1104X.Cursor) -> str:
         return self.connection.query(f'{self.name}:CRST? {cursor.name}')
-        
+
 
     def execute_command(self, command : list):
         match command[0]:
-            case "list":
-                print(f"Available commands for {self.name}:")
-                print("  list - list available commands")
-                print("  set_attenuation <value> - set channel attenuation")
-                print("  set_bandwidth <on/off> - set channel bandwidth limit")
-                print("  set_coupling <A1M/D1M/GND> - set channel coupling mode")
-                print("  set_offset <value> - set channel offset")
-                print("  set_skew <value> - set channel skew")
-                print("  set_trace <on/off> - set channel trace display")
-                print("  set_unit <V/A> - set channel unit")
-                print("  set_volt_div <value> - set channel volts/div")
-                print("  set_invert_trace <on/off> - set channel invert trace")
-                print("  set_cursor_position <cursor> <value> - set channel cursor position")
             case "set_attenuation":
                 if len(command) < 2:
                     print("Error: Missing value argument for set_attenuation command.")

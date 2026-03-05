@@ -55,6 +55,20 @@ class DL3021A:
     def __str__(self):
         return f"{self.idn['model']} DC Electronic Load\nSN:{self.idn['SN']}\nFirmware: {self.idn['firmware']}"
 
+    def execute_command(self, command : list):
+        match command[0]:
+            case "list":
+                print("Available commands:")
+                print("  list - list available commands")
+                print("  on - turn on load")
+                print("  off - turn off load")
+            case "on":
+                self.on()
+            case "off":
+                self.off()
+            case _:
+                print(f"Command '{command}' not found.")
+
     def wait(self):
         """
         Configures the instrument to wait for all pending operations to complete before executing any additional commands.
@@ -63,7 +77,7 @@ class DL3021A:
             raise RuntimeError(f"Instrument not connected.")
 
         self.connection.write("*WAI")
-    
+
     def on(self):
         self.connection.write(f':SOURCE:INPUT:STATE ON')
 
@@ -293,13 +307,13 @@ class DL3021A:
         Queries the present voltage value.
         """
         return float(self.connection.query(":MEASURE:VOLTAGE?"))
-    
+
     def get_current(self) -> float:
         """
         Queries the present current value.
         """
         return float(self.connection.query(":MEASURE:CURRENT?"))
-    
+
     def get_resistance(self) -> float:
         """
         Queries the present resistance value.
@@ -311,19 +325,3 @@ class DL3021A:
         Queries the present power value.
         """
         return float(self.connection.query(":MEASURE:POWER?"))
-
-
-    def execute_command(self, command : list):
-        match command[0]:
-            case "list":
-                print("Available commands:")
-                print("  list - list available commands")
-                print("  on - turn on load")
-                print("  off - turn off load")
-            case "on":
-                self.on()
-            case "off":
-                self.off()
-            case _:
-                print(f"Command '{command}' not found.")
-

@@ -53,6 +53,38 @@ class UDP3305S:
     def __str__(self):
         return f"{self.idn['model']} 3-channel lab power supply\nSN:{self.idn['SN']}\nFirmware: {self.idn['firmware']}"
 
+    def execute_command(self, command : list):
+        match command[0]:
+            case "list":
+                print("Available commands:")
+                print("  list - list available commands")
+                print("  on - turn on all outputs")
+                print("  off - turn off all outputs")
+                print("  ch# <cmd> - channel commands (ch1, ch2, ch3, chSER, chPARA)")
+                print("      on - turn on channel output")
+                print("      off - turn off channel output")
+                print("      voltage <value> - set channel voltage [V]")
+                print("      current <value> - set channel current limit [A]")
+                print("      OVP <value> - set channel over voltage protection (OVP) value [V] or 'OFF' to disable")
+                print("      OCP <value> - set channel over current protection (OCP) value [A] or 'OFF' to disable")
+                print("      read - measure channel output voltage, current, and power")
+            case "on":
+                self.on()
+            case "off":
+                self.off()
+            case "ch1":
+                self.ch1.execute_command(command[1:])
+            case "ch2":
+                self.ch2.execute_command(command[1:])
+            case "ch3":
+                self.ch3.execute_command(command[1:])
+            case "chSER":
+                self.chSER.execute_command(command[1:])
+            case "chPARA":
+                self.chPARA.execute_command(command[1:])
+            case _:
+                print(f"Command '{command}' not found.")
+
     def set_mode(self, mode : Mode):
         """
         Sets the mode of the power supply channels 1 and 2, either normal, serial or parallel.
@@ -91,44 +123,6 @@ class UDP3305S:
         Unlock keys on instrument panel
         """
         self.connection.write("LOCK OFF")
-
-    def execute_command(self, command : list):
-        match command[0]:
-            case "list":
-                print("Available commands:")
-                print("  list - list available commands")
-                print("  on - turn on all outputs")
-                print("  off - turn off all outputs")
-                print("  lock - lock keys on instrument panel")
-                print("  unlock - unlock keys on instrument panel")
-                print("  ch# <cmd> - channel commands (ch1, ch2, ch3, chSER, chPARA)")
-                print("      on - turn on channel output")
-                print("      off - turn off channel output")
-                print("      voltage <value> - set channel voltage [V]")
-                print("      current <value> - set channel current limit [A]")
-                print("      OVP <value> - set channel over voltage protection (OVP) value [V] or 'OFF' to disable")
-                print("      OCP <value> - set channel over current protection (OCP) value [A] or 'OFF' to disable")
-                print("      read - measure channel output voltage, current, and power")
-            case "on":
-                self.on()
-            case "off":
-                self.off()
-            case "lock":
-                self.lock()
-            case "unlock":
-                self.unlock()
-            case "ch1":
-                self.ch1.execute_command(command[1:])
-            case "ch2":
-                self.ch2.execute_command(command[1:])
-            case "ch3":
-                self.ch3.execute_command(command[1:])
-            case "chSER":
-                self.chSER.execute_command(command[1:])
-            case "chPARA":
-                self.chPARA.execute_command(command[1:])    
-            case _:
-                print(f"Command '{command}' not found.")
 
 
 class UDP3305S_channel:
@@ -257,16 +251,6 @@ class UDP3305S_channel:
 
     def execute_command(self, command : list):
         match command[0]:
-            case "list":
-                print(f"Available commands for {self.name}:")
-                print("  list - list available commands")
-                print("  on - turn on channel output")
-                print("  off - turn off channel output")
-                print("  voltage <value> - set channel voltage [V]")
-                print("  current <value> - set channel current limit [A]")
-                print("  OVP <value> - set channel over voltage protection (OVP) value [V] or 'OFF' to disable")
-                print("  OCP <value> - set channel over current protection (OCP) value [A] or 'OFF' to disable")
-                print("  read - measure channel output voltage, current, and power")
             case "on":
                 self.on()
             case "off":

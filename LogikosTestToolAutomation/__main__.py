@@ -22,11 +22,11 @@ def main():
         help="Command to execute ('list' to list available commands)",
         nargs="+"
     )
-    
+
     args = parser.parse_args()
 
     print(args.tool)
-    print(args.command) 
+    print(args.command)
 
     match args.tool:
         case "UDP3305S":
