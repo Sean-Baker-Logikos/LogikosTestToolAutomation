@@ -1,7 +1,16 @@
 import argparse
-from .UDP3305S import UDP3305S
-from .SDS1104X import SDS1104X
-from .DL3021A import DL3021A
+
+from twine.cli import args
+from .UDP3305S import UDP3305S, UDP3305S_commandline
+from .SDS1104X import SDS1104X, SDS1104X_commandline
+from .DL3021A import DL3021A, DL3021A_commandline
+
+from importlib.metadata import version
+
+# Command line examples:
+#   python -m LogikosTestToolAutomation list
+#   python -m LogikosTestToolAutomation UDP3305S list
+#   python -m LogikosTestToolAutomation UDP3305S ch1 voltage 12.0
 
 def main():
     parser = argparse.ArgumentParser(
@@ -11,7 +20,11 @@ def main():
     parser.add_argument(
         "--version",
         action="version",
-        version="%(prog)s 1.0.0"
+        version="%(prog)s " + version("LogikosTestToolAutomation")
+    )
+    parser.add_argument(
+        "--id",
+        help="Specify the ID of the tool to connect to (if multiple tools are connected)"
     )
     parser.add_argument(
         "tool",
@@ -20,21 +33,34 @@ def main():
     parser.add_argument(
         "command",
         help="Command to execute ('list' to list available commands)",
-        nargs="+"
+        nargs="*"
     )
 
     args = parser.parse_args()
 
-    print(args.tool)
-    print(args.command)
+    # print(args.tool)
+    # print(args.command)
 
+    if args.tool == "list":
+        print("Available tools:")
+        print("  UDP3305S")
+        print("  SDS1104X")
+        print("  DL3021A")
+
+
+        print(version("LogikosTestToolAutomation"))
+
+
+        return
+
+    tool = None
     match args.tool:
         case "UDP3305S":
-            tool = UDP3305S()
+            tool = UDP3305S_commandline(RID=args.id)
         case "SDS1104X":
-            tool = SDS1104X()
+            tool = SDS1104X_commandline(RID=args.id)
         case "DL3021A":
-            tool = DL3021A()
+            tool = DL3021A_commandline(RID=args.id)
 
     if tool:
         tool.execute_command(args.command)

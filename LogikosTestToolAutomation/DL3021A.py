@@ -41,6 +41,7 @@ class DL3021A:
         https://pyvisa.readthedocs.io/en/latest/introduction/communication.html
         """
         self.models = ["DL3021A"]
+        self.rid = RID
 
         rm = pyvisa.ResourceManager()
         (self.connection, self.idn) = test_tool_common.connect_pyvisa_device(rm, RID, self.models)
@@ -325,3 +326,38 @@ class DL3021A:
         Queries the present power value.
         """
         return float(self.connection.query(":MEASURE:POWER?"))
+
+
+class DL3021A_commandline:
+
+    def __init__(self, RID : str = ""):
+        self.rid = RID
+
+    def execute_command(self, command : list):
+        if not command:
+            print("No command specified.")
+            return
+        
+        try:
+            tool = DL3021A(RID=self.rid)
+        except RuntimeError as e:
+            print("Error: Could not connect to DL3021A electronic load.")
+            return
+        if not tool:
+            print("Error: Could not connect to DL3021A electronic load.")
+            return
+        print(tool.rid)
+
+        match command[0]:
+            case "list":
+                print("Available commands:")
+                print("  list - list available commands")
+                print("  on - turn on load")
+                print("  off - turn off load")
+            case "on":
+                tool.on()
+            case "off":
+                tool.off()
+            case _:
+                print(f"Command '{command}' not found.")
+

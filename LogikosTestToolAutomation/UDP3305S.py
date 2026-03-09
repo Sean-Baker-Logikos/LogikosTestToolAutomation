@@ -1,4 +1,5 @@
 import pyvisa
+from setuptools import command
 from LogikosTestToolAutomation import test_tool_common
 from enum import Enum
 import time
@@ -33,6 +34,7 @@ class UDP3305S:
         https://pyvisa.readthedocs.io/en/latest/introduction/communication.html
         """
         self.models = ["UDP3305S", "UDP3305S-E"]
+        self.rid = RID
 
         rm = pyvisa.ResourceManager()
         (self.connection, self.idn) = test_tool_common.connect_pyvisa_device(rm, RID, self.models)
@@ -52,38 +54,6 @@ class UDP3305S:
 
     def __str__(self):
         return f"{self.idn['model']} 3-channel lab power supply\nSN:{self.idn['SN']}\nFirmware: {self.idn['firmware']}"
-
-    def execute_command(self, command : list):
-        match command[0]:
-            case "list":
-                print("Available commands:")
-                print("  list - list available commands")
-                print("  on - turn on all outputs")
-                print("  off - turn off all outputs")
-                print("  ch# <cmd> - channel commands (ch1, ch2, ch3, chSER, chPARA)")
-                print("      on - turn on channel output")
-                print("      off - turn off channel output")
-                print("      voltage <value> - set channel voltage [V]")
-                print("      current <value> - set channel current limit [A]")
-                print("      OVP <value> - set channel over voltage protection (OVP) value [V] or 'OFF' to disable")
-                print("      OCP <value> - set channel over current protection (OCP) value [A] or 'OFF' to disable")
-                print("      read - measure channel output voltage, current, and power")
-            case "on":
-                self.on()
-            case "off":
-                self.off()
-            case "ch1":
-                self.ch1.execute_command(command[1:])
-            case "ch2":
-                self.ch2.execute_command(command[1:])
-            case "ch3":
-                self.ch3.execute_command(command[1:])
-            case "chSER":
-                self.chSER.execute_command(command[1:])
-            case "chPARA":
-                self.chPARA.execute_command(command[1:])
-            case _:
-                print(f"Command '{command}' not found.")
 
     def set_mode(self, mode : Mode):
         """
@@ -288,3 +258,104 @@ class UDP3305S_channel:
                 print(f"{self.name} Output: {voltage:.2f} V, {current:.2f} A, {power:.2f} W")
             case _:
                 print(f"Command '{command}' not found for {self.name}.")
+
+
+
+class UDP3305S_commandline:
+
+    def __init__(self, RID : str = ""):
+        self.rid = RID
+
+    def execute_command(self, command : list):
+        if not command:
+            print("No command specified.")
+            return
+
+        if command[0] == "list":
+            print("Available commands:")
+            print("  list - list available commands")
+            print("  on - turn on all outputs")
+            print("  off - turn off all outputs")
+            print("  ch# <cmd> - channel commands (ch1, ch2, ch3, chSER, chPARA)")
+            print("      on - turn on channel output")
+            print("      off - turn off channel output")
+            print("      voltage <value> - set channel voltage [V]")
+            print("      current <value> - set channel current limit [A]")
+            print("      OVP <value> - set channel over voltage protection (OVP) value [V] or 'OFF' to disable")
+            print("      OCP <value> - set channel over current protection (OCP) value [A] or 'OFF' to disable")
+            print("      read - measure channel output voltage, current, and power")
+        else:
+            
+            try:    
+                tool = UDP3305S(RID=self.rid)
+            except RuntimeError as e:
+                print("Error: Could not connect to UDP3305S power supply.")
+                return
+            if not tool:
+                print("Error: Could not connect to UDP3305S power supply.")
+                return
+            print(tool.rid)
+
+            match command[0]:
+                case "on":
+                    tool.on()
+                case "off":
+                    tool.off()
+
+                case "ch1" | "ch2" | "ch3" | "chSER" | "chPARA":
+                    channel = getattr(tool, command[0])
+
+                    match command[1]:
+                        case "on":
+                            channel.on()
+                        case "off":
+                            channel.off()
+                        case "voltage":
+                            if len(command) < 3:
+                                print("Error: Voltage value not specified.")
+                            else:
+                                try:
+                                    channel.set_voltage(float(command[2]))
+                                except ValueError as e:
+                                    print(f"Error: {e}")
+                        case "current":
+                            if len(command) < 3:
+                                print("Error: Current value not specified.")
+                            else:
+                                try:
+                                    channel.set_current(float(command[2]))
+                                except ValueError as e:
+                                    print(f"Error: {e}")
+                        case "OVP":
+                            if len(command) < 3:
+                                print("Error: OVP value not specified.")
+                            else:
+                                if command[2].upper() == "OFF":
+                                    channel.set_OVP(0, state=False)
+                                else:
+                                    try:
+                                        channel.set_OVP(float(command[2]), state=True)
+                                    except ValueError as e:
+                                        print(f"Error: {e}")
+                        case "OCP":
+                            if len(command) < 3:
+                                print("Error: OCP value not specified.")
+                            else:
+                                if command[2].upper() == "OFF":
+                                    channel.set_OCP(0, state=False)
+                                else:
+                                    try:
+                                        channel.set_OCP(float(command[2]), state=True)
+                                    except ValueError as e:
+                                        print(f"Error: {e}")
+                        case "read":
+                            voltage = channel.read_voltage()
+                            current = channel.read_current()
+                            power = channel.read_power()
+                            print(f"{channel.name} Output: {voltage:.2f} V, {current:.2f} A, {power:.2f} W")
+
+                        case _:
+                            print(f"Command '{command}' not found.")
+
+                case _:
+                    print(f"Command '{command}' not found.")
