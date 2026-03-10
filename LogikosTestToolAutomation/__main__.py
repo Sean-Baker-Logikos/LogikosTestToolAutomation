@@ -4,9 +4,9 @@ from importlib.metadata import version
 import sys
 
 from .test_tool_common import list_pyvisa_devices
-from .UDP3305S import UDP3305S, UDP3305S_commandline
-from .SDS1104X import SDS1104X, SDS1104X_commandline
-from .DL3021A import DL3021A, DL3021A_commandline
+from .UDP3305S import UDP3305S_commandline
+from .SDS1104X import SDS1104X_commandline
+from .DL3021A import DL3021A_commandline
 
 # Command line examples:
 #   python -m LogikosTestToolAutomation list
@@ -26,15 +26,15 @@ def main():
     )
     parser.add_argument(
         "--id",
-        help="Specify the ID of the tool to connect to (if multiple tools are connected)"
+        help="Specify the ID of the tool to connect to. If not specified, the first matching tool will be used."
     )
     parser.add_argument(
         "tool",
-        help="Automation tool to use ('UDP3305S', 'SDS1104X', 'DL3021A')"
+        help="Automation tool to use ('list' to list supported tools)"
     )
     parser.add_argument(
         "command",
-        help="Command to execute ('list' to list available commands)",
+        help="Command to execute ('list' to list supported commands)",
         nargs="*"
     )
 
@@ -44,7 +44,7 @@ def main():
 
     match args.tool:
         case "list":
-            print("Available tools:")
+            print("Supported tools:")
             print("  UDP3305S")
             print("  SDS1104X")
             print("  DL3021A")
@@ -65,7 +65,7 @@ def main():
             if tool:
                 tool.execute_command(args.command)
             else:
-                print(f"Tool '{args.tool}' not found.")
+                print(f"Tool '{args.tool}' not supported.")
                 sys.exit(1)
 
 
