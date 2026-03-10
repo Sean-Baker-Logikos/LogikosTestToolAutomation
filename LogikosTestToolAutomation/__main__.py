@@ -1,14 +1,16 @@
 import argparse
-
 from twine.cli import args
+from importlib.metadata import version
+import sys
+
+from .test_tool_common import list_pyvisa_devices
 from .UDP3305S import UDP3305S, UDP3305S_commandline
 from .SDS1104X import SDS1104X, SDS1104X_commandline
 from .DL3021A import DL3021A, DL3021A_commandline
 
-from importlib.metadata import version
-
 # Command line examples:
 #   python -m LogikosTestToolAutomation list
+#   python -m LogikosTestToolAutomation devices
 #   python -m LogikosTestToolAutomation UDP3305S list
 #   python -m LogikosTestToolAutomation UDP3305S ch1 voltage 12.0
 
@@ -37,35 +39,35 @@ def main():
     )
 
     args = parser.parse_args()
-
     # print(args.tool)
     # print(args.command)
 
-    if args.tool == "list":
-        print("Available tools:")
-        print("  UDP3305S")
-        print("  SDS1104X")
-        print("  DL3021A")
-
-
-        print(version("LogikosTestToolAutomation"))
-
-
-        return
-
-    tool = None
     match args.tool:
-        case "UDP3305S":
-            tool = UDP3305S_commandline(RID=args.id)
-        case "SDS1104X":
-            tool = SDS1104X_commandline(RID=args.id)
-        case "DL3021A":
-            tool = DL3021A_commandline(RID=args.id)
+        case "list":
+            print("Available tools:")
+            print("  UDP3305S")
+            print("  SDS1104X")
+            print("  DL3021A")
 
-    if tool:
-        tool.execute_command(args.command)
-    else:
-        print(f"Tool '{args.tool}' not found.")
+        case "devices":
+            list_pyvisa_devices()
+
+        case _:
+            tool = None
+            match args.tool:
+                case "UDP3305S":
+                    tool = UDP3305S_commandline(RID=args.id)
+                case "SDS1104X":
+                    tool = SDS1104X_commandline(RID=args.id)
+                case "DL3021A":
+                    tool = DL3021A_commandline(RID=args.id)
+
+            if tool:
+                tool.execute_command(args.command)
+            else:
+                print(f"Tool '{args.tool}' not found.")
+                sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

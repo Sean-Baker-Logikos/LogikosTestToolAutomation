@@ -3,7 +3,7 @@ from typing import List
 
 def connect_pyvisa_device(rm : pyvisa.ResourceManager,
                           RID : str = "",
-                          models : List[str] = []) -> tuple[pyvisa.resources.MessageBasedResource, dict]:
+                          models : List[str] = []) -> tuple[pyvisa.resources.MessageBasedResource, dict, str]:
     """
     Connect to a pyVisa device.
     See: https://pyvisa.readthedocs.io/en/latest/introduction/communication.html
@@ -37,11 +37,12 @@ def connect_pyvisa_device(rm : pyvisa.ResourceManager,
                         connection.close()
                         connection = None
                     else:
+                        RID = r
                         break
             except pyvisa.errors.VisaIOError:
                 connection = None
 
-    return (connection, idn) # type: ignore
+    return (connection, idn, RID) # type: ignore
 
 
 def list_pyvisa_devices():

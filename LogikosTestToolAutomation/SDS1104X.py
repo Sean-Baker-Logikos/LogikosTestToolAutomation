@@ -1,10 +1,8 @@
-from unittest import case
-
 import pyvisa
 from LogikosTestToolAutomation import test_tool_common
 from typing import Union
 from enum import Enum, Flag
-
+import sys
 """
 Controlling a SIGLENT SDS 1104X-E Digitial Storage Oscilloscope
 
@@ -93,7 +91,7 @@ class SDS1104X:
         self.rid = RID
 
         rm = pyvisa.ResourceManager()
-        (self.connection, self.idn) = test_tool_common.connect_pyvisa_device(rm, RID, self.models)
+        (self.connection, self.idn, self.rid) = test_tool_common.connect_pyvisa_device(rm, RID, self.models)
 
         if not self.connection:
             raise RuntimeError(f"Instrument {self.models} not found." )
@@ -532,7 +530,7 @@ class SDS1104X_commandline:
     def execute_command(self, command : list):
         if not command:
             print("No command specified.")
-            return
+            sys.exit(1)
 
         if command[0] == "list":
                 print("Available commands:")
@@ -559,10 +557,10 @@ class SDS1104X_commandline:
                 tool = SDS1104X(RID=self.rid)
             except RuntimeError as e:
                 print("Error: Could not connect to SDS1104X oscilloscope.")
-                return
+                sys.exit(1)
             if not tool:
                 print("Error: Could not connect to SDS1104X oscilloscope.")
-                return
+                sys.exit(1)
             print(tool.rid)
 
             match command[0]:
@@ -573,16 +571,19 @@ class SDS1104X_commandline:
                 case "write_state_file":
                     if len(command) < 2:
                         print("Error: Missing filename argument for write_state_file command.")
+                        sys.exit(1)
                     else:
                         tool.write_state_file(command[1])
                 case "load_state_file":
                     if len(command) < 2:
                         print("Error: Missing filename argument for load_state_file command.")
+                        sys.exit(1)
                     else:
                         tool.load_state_file(command[1])
                 case "capture_screen":
                     if len(command) < 2:
                         print("Error: Missing filename argument for capture_screen command.")
+                        sys.exit(1)
                     else:
                         tool.capture_screen(command[1])
 
@@ -593,67 +594,82 @@ class SDS1104X_commandline:
                         case "set_attenuation":
                             if len(command) < 3:
                                 print("Error: Missing value argument for set_attenuation command.")
+                                sys.exit(1)
                             else:
                                 channel.set_attenuation(float(command[2]))
                         case "set_bandwidth":
                             if len(command) < 3:
                                 print("Error: Missing on/off argument for set_bandwidth command.")
+                                sys.exit(1)
                             else:
                                 channel.set_bandwidth(command[2].lower() == "on")
                         case "set_coupling":
                             if len(command) < 3:
                                 print("Error: Missing coupling mode argument for set_coupling command.")
+                                sys.exit(1)
                             else:
                                 try:
                                     coupling_mode = SDS1104X.CouplingMode[command[2].upper()]
                                     channel.set_coupling(coupling_mode)
                                 except KeyError:
                                     print(f"Error: Invalid coupling mode '{command[2]}'. Valid modes are: A1M, D1M, GND.")
+                                    sys.exit(1)
                         case "set_offset":
                             if len(command) < 3:
                                 print("Error: Missing value argument for set_offset command.")
+                                sys.exit(1)
                             else:
                                 channel.set_offset(float(command[2]))
                         case "set_skew":
                             if len(command) < 3:
                                 print("Error: Missing value argument for set_skew command.")
+                                sys.exit(1)
                             else:
                                 channel.set_skew(float(command[2]))
                         case "set_trace":
                             if len(command) < 3:
                                 print("Error: Missing on/off argument for set_trace command.")
+                                sys.exit(1)
                             else:
                                 channel.set_trace(command[2].lower() == "on")
                         case "set_unit":
                             if len(command) < 3:
                                 print("Error: Missing unit argument for set_unit command.")
+                                sys.exit(1)
                             else:
                                 try:
                                     unit = SDS1104X.Unit[command[2].upper()]
                                     channel.set_unit(unit)
                                 except KeyError:
                                     print(f"Error: Invalid unit '{command[2]}'. Valid units are: V, A.")
+                                    sys.exit(1)
                         case "set_volt_div":
                             if len(command) < 3:
                                 print("Error: Missing value argument for set_volt_div command.")
+                                sys.exit(1)
                             else:
                                 channel.set_volt_div(float(command[2]))
                         case "set_invert_trace":
                             if len(command) < 3:    
                                 print("Error: Missing on/off argument for set_invert_trace command.")
+                                sys.exit(1)
                             else:
                                 channel.set_invert_trace(command[2].lower() == "on")
                         case "set_cursor_position":
                             if len(command) < 4:
                                 print("Error: Missing cursor and value arguments for set_cursor_position command.")
+                                sys.exit(1)
                             else:
                                 try:
                                     cursor = SDS1104X.Cursor[command[2].upper()]
                                     channel.set_cursor_position(cursor, float(command[3]))
                                 except KeyError:
                                     print(f"Error: Invalid cursor '{command[2]}'. Valid cursors are: VREF, VDIF, TREF, TDIF, HREF, HDIF.")
+                                    sys.exit(1)
                         case _:
                             print(f"Command '{command}' not found.")
+                            sys.exit(1)
 
                 case _:
                     print(f"Command '{command}' not found.")
+                    sys.exit(1)

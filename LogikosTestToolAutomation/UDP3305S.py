@@ -1,9 +1,8 @@
 import pyvisa
-from setuptools import command
 from LogikosTestToolAutomation import test_tool_common
 from enum import Enum
 import time
-
+import sys
 """
 Controlling a UNI-T UDP3305S power supply
 """
@@ -37,7 +36,7 @@ class UDP3305S:
         self.rid = RID
 
         rm = pyvisa.ResourceManager()
-        (self.connection, self.idn) = test_tool_common.connect_pyvisa_device(rm, RID, self.models)
+        (self.connection, self.idn, self.rid) = test_tool_common.connect_pyvisa_device(rm, RID, self.models)
 
         if not self.connection:
             raise RuntimeError(f"Instrument {self.models} not found." )
@@ -269,7 +268,7 @@ class UDP3305S_commandline:
     def execute_command(self, command : list):
         if not command:
             print("No command specified.")
-            return
+            sys.exit(1)
 
         if command[0] == "list":
             print("Available commands:")
@@ -290,10 +289,10 @@ class UDP3305S_commandline:
                 tool = UDP3305S(RID=self.rid)
             except RuntimeError as e:
                 print("Error: Could not connect to UDP3305S power supply.")
-                return
+                sys.exit(1)
             if not tool:
                 print("Error: Could not connect to UDP3305S power supply.")
-                return
+                sys.exit(1)
             print(tool.rid)
 
             match command[0]:
@@ -313,22 +312,27 @@ class UDP3305S_commandline:
                         case "voltage":
                             if len(command) < 3:
                                 print("Error: Voltage value not specified.")
+                                sys.exit(1)
                             else:
                                 try:
                                     channel.set_voltage(float(command[2]))
                                 except ValueError as e:
                                     print(f"Error: {e}")
+                                    sys.exit(1)
                         case "current":
                             if len(command) < 3:
                                 print("Error: Current value not specified.")
+                                sys.exit(1)
                             else:
                                 try:
                                     channel.set_current(float(command[2]))
                                 except ValueError as e:
                                     print(f"Error: {e}")
+                                    sys.exit(1)
                         case "OVP":
                             if len(command) < 3:
                                 print("Error: OVP value not specified.")
+                                sys.exit(1)
                             else:
                                 if command[2].upper() == "OFF":
                                     channel.set_OVP(0, state=False)
@@ -337,9 +341,11 @@ class UDP3305S_commandline:
                                         channel.set_OVP(float(command[2]), state=True)
                                     except ValueError as e:
                                         print(f"Error: {e}")
+                                        sys.exit(1)
                         case "OCP":
                             if len(command) < 3:
                                 print("Error: OCP value not specified.")
+                                sys.exit(1)
                             else:
                                 if command[2].upper() == "OFF":
                                     channel.set_OCP(0, state=False)
@@ -348,6 +354,7 @@ class UDP3305S_commandline:
                                         channel.set_OCP(float(command[2]), state=True)
                                     except ValueError as e:
                                         print(f"Error: {e}")
+                                        sys.exit(1)
                         case "read":
                             voltage = channel.read_voltage()
                             current = channel.read_current()
@@ -356,6 +363,8 @@ class UDP3305S_commandline:
 
                         case _:
                             print(f"Command '{command}' not found.")
+                            sys.exit(1)
 
                 case _:
                     print(f"Command '{command}' not found.")
+                    sys.exit(1)

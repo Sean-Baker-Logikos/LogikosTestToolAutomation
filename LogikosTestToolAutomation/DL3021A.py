@@ -3,7 +3,7 @@ from LogikosTestToolAutomation import test_tool_common
 from typing import Optional, Union
 from dataclasses import dataclass
 from enum import Enum
-
+import sys
 """
 Controlling a RIGOL DL3021A DC Electronic Load
 
@@ -44,7 +44,7 @@ class DL3021A:
         self.rid = RID
 
         rm = pyvisa.ResourceManager()
-        (self.connection, self.idn) = test_tool_common.connect_pyvisa_device(rm, RID, self.models)
+        (self.connection, self.idn, self.rid) = test_tool_common.connect_pyvisa_device(rm, RID, self.models)
 
         if not self.connection:
             raise RuntimeError(f"Instrument {self.models} not found." )
@@ -336,16 +336,16 @@ class DL3021A_commandline:
     def execute_command(self, command : list):
         if not command:
             print("No command specified.")
-            return
+            sys.exit(1)
         
         try:
             tool = DL3021A(RID=self.rid)
         except RuntimeError as e:
             print("Error: Could not connect to DL3021A electronic load.")
-            return
+            sys.exit(1)
         if not tool:
             print("Error: Could not connect to DL3021A electronic load.")
-            return
+            sys.exit(1)
         print(tool.rid)
 
         match command[0]:
@@ -360,4 +360,4 @@ class DL3021A_commandline:
                 tool.off()
             case _:
                 print(f"Command '{command}' not found.")
-
+                sys.exit(1)
