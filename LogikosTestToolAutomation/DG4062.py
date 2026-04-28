@@ -88,14 +88,14 @@ class DG4062:
     
     
     # SYST:PRES
-    def reset(self, state: DG4062.SystemState):
+    def reset(self, state: 'DG4062.SystemState'):
         """
         The RESET command restores the system to its default state (DEFault) or user-defined state (USER1, USER2, USER3, USER4, USER5, USER6, USER7, USER8, USER9 or USER10)..
         """
         return self.connection.write(f":SYST:PRES {state.name}")
 
     # *SAV USER1
-    def save_state(self, state: DG4062.SystemState):
+    def save_state(self, state: 'DG4062.SystemState'):
         """
         The SAVE_STATE command restores the system to user-defined state (USER1, USER2, USER3, USER4, USER5, USER6, USER7, USER8, USER9 or USER10)..
         """
