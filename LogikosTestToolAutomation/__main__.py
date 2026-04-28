@@ -7,6 +7,7 @@ from .test_tool_common import list_pyvisa_devices
 from .UDP3305S import UDP3305S_commandline
 from .SDS1104X import SDS1104X_commandline
 from .DL3021A import DL3021A_commandline
+from .DG4062 import DG4062_commandline
 
 # Command line examples:
 #   python -m LogikosTestToolAutomation list
@@ -48,6 +49,7 @@ def main():
             print("  UDP3305S")
             print("  SDS1104X")
             print("  DL3021A")
+            print("  DG4062")
 
         case "devices":
             list_pyvisa_devices()
@@ -61,6 +63,8 @@ def main():
                     tool = SDS1104X_commandline(RID=args.id)
                 case "DL3021A":
                     tool = DL3021A_commandline(RID=args.id)
+                case "DG4062":
+                    tool = DG4062_commandline(RID=args.id)
 
             if tool:
                 tool.execute_command(args.command)
