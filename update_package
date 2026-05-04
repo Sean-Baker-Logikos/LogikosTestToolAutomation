@@ -1,0 +1,19 @@
+#!/bin/bash
+
+newver="$1"
+
+if [ -z "$newver" ]; then
+    echo "USAGE: $0 <version>"
+	exit 1
+fi
+
+echo NEWVER = $newver
+
+sed -i "s/^\s*version=.*/    version=\"${newver}\",/" setup.py || { echo "$0: Failed to update setup.py"; exit 2; }
+git add setup.py
+git commit -m "Update to version $newver"
+git push || { echo "$0: Push failed"; exit 2; }
+
+git tag "$newver" -m "New Release"
+git push origin "$newver" || { echo "$0: Push failed"; exit 2; }
+
