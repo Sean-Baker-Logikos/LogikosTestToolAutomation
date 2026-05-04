@@ -306,7 +306,7 @@ class SigrokLA:
     class Triggers:
         def __init__(self,
                 triggers: list['SigrokLA.TriggerChannel'],
-                wait = False):
+                wait: bool = False):
             self.triggers = triggers
             self.wait = wait
 
