@@ -2,4 +2,3 @@ setuptools==69.2.0
 wheel
 twine
 pyvisa
-sigrok>=0.1.2
